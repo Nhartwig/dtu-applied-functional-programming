@@ -21,7 +21,7 @@ let postscript tree =
     let rec postscript' (x: int, y: int) (Node((label, X'), subtree): Tree<string * float>) =
         match subtree with
         | [] ->
-            sprintf "%i %i moveto\n" x (y - 10)
+            sprintf "%i %i moveto\n" ((int X') + x) (y - 10)
             + sprintf "(%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" label
         | _ ->
             let X = int X'
