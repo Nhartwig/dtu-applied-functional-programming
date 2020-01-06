@@ -13,15 +13,18 @@ let rec merge (ps : Extent) (qs : Extent) =
     match (ps, qs) with
     | (_, []) -> ps
     | ([], _) -> qs
-    | ((p,_)::ps', (_,q)::qs') -> (p,q) :: merge ps' ps'
+    | ((p,_)::ps', (_,q)::qs') -> (p,q) :: merge ps' qs'
 
-let mergelist (es : Extent list) = List.fold merge es []
+let rec mergelist (es : Extent list) = 
+    match es with
+    | [] -> []
+    | e::es' -> merge e (mergelist es')
 
 (* 4 Fitting extents *)
 let rmax (p, q) = if p > q then p else q
 let rec fit (ps :Extent) (qs : Extent) = 
     match (ps, qs) with
-    | ((_,p)::ps, (q,_)::qs) -> rmax(fit ps qs, p - q + 1.0)
+    | ((_,p)::ps', (q,_)::qs') -> rmax(fit ps' qs', p - q + 1.0)
     | (_,_) -> 0.0
 
 let fitlist1 es =
@@ -33,16 +36,15 @@ let fitlist1 es =
             x :: fitlist1' (merge acc (moveextent(e, x) )) es'
     fitlist1' [] es
 
-let fitlistr es =
-    let rec fitlistr' acc es =
-        match es with
-        | [] -> []
-        | e::es' -> 
-            let x = -(fit acc e)
-            x :: fitlistr' (merge (moveextent(e,x)) acc) es'
-    List.rev (fitlistr' [] (List.rev es))
+let flipextent (e : Extent) : Extent = List.map (fun (p,q) -> (-q,-p)) e
+let fitlistr es = 
+    List.rev es
+    |> List.map flipextent
+    |> fitlist1
+    |> List.map (~-)
+    |> List.rev
 
-let mean (x,y) = x+y/2.0
+let mean (x,y) = (x+y)/2.0
 let fitlist (es: Extent list) = List.map mean (List.zip (fitlist1 es) (fitlistr es))
 
 (* 5 Designing the tree *)
@@ -58,3 +60,5 @@ let design tree =
         (resulttree, resultextent)
     fst (design' tree)
 
+//let test = design(Node(1,[Node(2,[Node(4,[]); Node(5,[]); Node(6,[]); Node(7,[])]); Node(3,[]); Node(9,[])]))
+//printf "%A" test
