@@ -60,5 +60,17 @@ let design tree =
         (resulttree, resultextent)
     fst (design' tree)
 
+(* Our own part *)
+
 //let test = design(Node(1,[Node(2,[Node(4,[]); Node(5,[]); Node(6,[]); Node(7,[])]); Node(3,[]); Node(9,[])]))
 //printf "%A" test
+
+// Function for randomly generating a tree with max depth l
+let randomtree l = 
+    let r = System.Random()
+    let rec randomtree' n =
+        match n with
+        | _ when n >= r.Next(1,l) -> [Node(n,[])]
+        | _ -> [1 .. r.Next(1, l+l)] |> List.map (fun _ -> Node(1, randomtree' (n+1)))
+    Node(0,randomtree' 0)
+//printf "%A" (randomtree 5)
