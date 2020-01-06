@@ -1,3 +1,4 @@
+[<AutoOpen>]
 module Translated
 (* 2 Representing trees *)
 type Tree<'a> = Node of 'a * ('a Tree list)
