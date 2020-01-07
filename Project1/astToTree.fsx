@@ -26,11 +26,13 @@ let astToTree (program : Program ) =
         | Return (exp) ->   match exp with 
                             | Some(exp') -> Node("Return", [expToTree exp'])
                             | None -> Node("Return", [Node("None", [])])
-        | Alt (gc) -> Node("Alt", [gcToTree gc])
-        | Do (gc) -> Node("Do", [gcToTree gc])
+        | Alt (gc) -> Node("Alt", gcToTree gc)
+        | Do (gc) -> Node("Do", gcToTree gc)
         | Block (decs, stms) -> Node("Block", (List.map decToTree decs) @ (List.map stmToTree stms))
         | Call (str, exps) -> Node("Call", [Node(str,[])] @ (List.map expToTree exps))
-    and gcToTree gc = Node("TODO", [])
+    and gcToTree gc = 
+        match gc with
+        | GC(gcs) -> List.map (fun (exp, stms) -> Node("GC", [expToTree exp] @(List.map stmToTree stms))) gcs
     and decToTree dec =
         match dec with
         | VarDec (typ, str) -> Node("VarDec", [typToTree typ] @ [Node(str, [])])
