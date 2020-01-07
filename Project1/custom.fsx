@@ -16,7 +16,7 @@ let tree =  randomtree 7
             //|> (scaletree 5.0)
 
 // Time difference
-let timeDefault = timeOperation (fun() -> postscript' (List.fold (fun s x -> s + (sprintf "%s\n" x) ) "" ) tree)
+let timeDefault = timeOperation (fun() -> postscript' (List.fold (fun s x -> s + (x) ) "" ) tree)
 let timeConcat = timeOperation (fun() -> postscript' (String.concat "\n") tree)
 let stringbuilder = fun xs -> xs |> Seq.fold (fun (sb:System.Text.StringBuilder) (s: string) -> sb.Append(s) ) (System.Text.StringBuilder()) |> fun sb -> sb.ToString()
 let timeBuilder = timeOperation (fun() -> postscript' (stringbuilder) tree)
