@@ -1,5 +1,5 @@
-#load "translated.fsx"
-open Translated
+//#load "translated.fsx"
+//open Translated
 // function for generating postscript
 let postscript tree =
     let start = "%!
