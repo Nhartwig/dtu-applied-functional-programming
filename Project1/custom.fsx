@@ -29,12 +29,13 @@ let tree = (design (randomtree 7)) |> (scaletree 5.0)
 
 let timeDefault = timeOperation (fun() -> postscript tree)
 let timeConcat = timeOperation (fun() -> postscriptConcat tree)
+let timeBuilder = timeOperation (fun() -> postscriptStringBuilder tree)
 
-printf "\n\nTime for default: %i\nTime for Concat:  %i\n\n" (timeDefault.millisecondsTaken) (timeConcat.millisecondsTaken)
+printf "\n\nTime for default: %i\nTime for Concat:  %i\nTime for Builder: %i\n\n" (timeDefault.millisecondsTaken) (timeConcat.millisecondsTaken) (timeBuilder.millisecondsTaken)
 
 // Testing postscript
 
-let postscripttree = (postscriptConcat tree)
+let postscripttree = (postscriptStringBuilder tree)
 //printf "%s" postscripttree
 
 open System.IO;
