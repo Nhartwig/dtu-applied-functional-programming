@@ -57,7 +57,7 @@ let astToTree (program : Program ) =
 
 
 // Testing part
-let program =
+let factorial =
     P ([
             VarDec(ITyp, "res");
             FunDec(Some(ITyp), "fact", [VarDec(ITyp, "n")], Block([
@@ -78,17 +78,23 @@ let program =
             PrintLn (Access(AVar("res")))
 ])
 
-printf "%A" program
+let sieveOfEratosthenes = P([],[])
+
+let fibonazziNumbers = P([],[])
 
 let rec scaletree n (Node(x', y)) =
     Node((fst x', (snd x') * n), List.map (scaletree n) y)
 
-let tree = (design (astToTree program) |> (scaletree 35.0))
+let factTree = (design (astToTree factorial) |> (scaletree 35.0))
+let sieveTree = (design (astToTree sieveOfEratosthenes) |> (scaletree 35.0))
+let fibonazziTree = (design (astToTree fibonazziNumbers) |> (scaletree 35.0))
 
-printf "And tree = %A" tree
-
-let postscripttree = postscript tree
+let factPostScript = postscript factTree
+let sievePostScript = postscript sieveTree
+let fibonazziPostScript = postscript fibonazziTree
 
 open System.IO;
 
-File.WriteAllText("test.ps", postscripttree)
+File.WriteAllText("customFactorial.ps", factPostScript)
+File.WriteAllText("customSieveOfEratosthenes.ps", sievePostScript)
+File.WriteAllText("customFibonazziNumbers.ps", fibonazziPostScript)

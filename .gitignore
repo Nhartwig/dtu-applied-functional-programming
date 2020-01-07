@@ -2,4 +2,7 @@
 test.ps
 Project1/drawing_trees_translation.fs
 Project1/.ionide/
-
+Project1/customFact.ps
+Project1/customFactorial.ps
+Project1/customFibonazziNumbers.ps
+Project1/customSieveOfEratosthenes.ps

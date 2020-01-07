@@ -48,7 +48,7 @@ let toPostScript list =
                                     sprintf "%i %i lineto" x2 y2]
     start @ (List.collect toStr list) @ ending
 
-let postscript listToString tree =
+let postscript' listToString tree =
     treeWithCoords tree
     |> (scalingTree 7.0 100.0)
     |> floatTreeToInt
@@ -56,3 +56,6 @@ let postscript listToString tree =
     |> treeToPostScript
     |> toPostScript
     |> listToString
+
+let postscript tree =
+    postscript' (String.concat "\n") tree
