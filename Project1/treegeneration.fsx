@@ -23,3 +23,18 @@ let willowTree num_levels =
 let squareTree q = 
     match q with
     | _ -> Node(sprintf "", [1..q] |> List.map (fun _ -> willowTree q))
+
+let randomSquareTree width depth =
+    let rand = System.Random()
+    let randomizedMatrix =
+        [1 .. depth]
+        |> List.map (fun _ ->
+            [1 .. width] |> List.map (fun _ -> rand.Next(0,width))
+        ) 
+    printf "%A" randomizedMatrix
+    let nodes = 
+        randomizedMatrix
+        |> List.fold (fun s xs -> 
+            [0 .. width-1] |> List.map (fun i -> Node("s", (List.zip s xs) |> (List.filter (fun (_, j) -> j = i )) |> (List.map (fst)) ))
+        ) ([1 .. width] |> List.map (fun _ -> Node("l", [])))
+    Node("r", nodes)
