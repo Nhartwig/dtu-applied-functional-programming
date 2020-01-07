@@ -8,6 +8,8 @@ let treeWithCoords tree =
     coords 0.0 0.0 tree
 
 let rec scalingTree (xMultiplier) (yMultiplier) (Node((label, (x,y)), subtree))=
+    assert (xMultiplier >= 31.0)
+    assert (yMultiplier >= 7.0)
     Node((label, (x * xMultiplier,y * yMultiplier)), List.map (scalingTree xMultiplier yMultiplier) subtree)
 
 let rec floatTreeToInt (Node((label ,(x,y)), subtree)) =
