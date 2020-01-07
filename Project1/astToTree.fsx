@@ -83,7 +83,7 @@ printf "%A" program
 let rec scaletree n (Node(x', y)) =
     Node((fst x', (snd x') * n), List.map (scaletree n) y)
 
-let tree = (design (astToTree program) |> (scaletree 25.0))
+let tree = (design (astToTree program) |> (scaletree 35.0))
 
 printf "And tree = %A" tree
 
