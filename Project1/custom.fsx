@@ -8,9 +8,11 @@ open Postscript
 open Timing
 (* Our own part *)
 
+
 // Defining tree
+// Call squareTree to generate square tree x units deep by x units wide
 let tree =  randomtree 7
-            |> (design) 
+            |> (design)
             //|> (scaletree 5.0)
 
 // Time difference
