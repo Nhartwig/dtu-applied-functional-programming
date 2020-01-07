@@ -80,21 +80,48 @@ let factorial =
 
 let sieveOfEratosthenes = P([],[])
 
-let fibonazziNumbers = P([],[])
+// 
+// write microC fibonnaci program first? 
+let fibonacciNumbers = P([
+                            VarDec(ITyp,"res");
+                            FunDec(Some(ITyp), "fibonacci",[VarDec(ITyp, "n")], Block([
+                                VarDec(ITyp, "x");
+                                VarDec(ITyp, "idx");
+                                VarDec(ITyp,"f0");
+                                VarDec(ITyp,"f1")
+                                    ],[
+                                        Ass(AVar("x"), N(0));
+                                        Ass(AVar("idx"), N(0));
+                                        Ass(AVar("f0"), N(0));
+                                        Ass(AVar("f1"), N(1));
+                                        Do(GC([(Apply("!", [Apply("=", [Access(AVar("idx")); Access(AVar("n"))])]), [
+                                            Ass(AVar("x"), Apply("+", [Access(AVar("f0")); Access(AVar("f1"))]));
+                                            Ass(AVar("idx"), Apply("+", [Access(AVar("idx")); N(1)]));
+                                            Ass(AVar("f0"), Access(AVar("f1")));
+                                            Ass(AVar("f1"),Access(AVar("x")))
+                                        ])]))
+                                        Return(Some(Access(AVar("x"))))
+                            ]))                                   
+                        ],
+                        [
+                            Ass(AVar("res"),Apply("fibonacci", [N(4)]));
+                            PrintLn (Access(AVar("res")))
+])
+
 
 let rec scaletree n (Node(x', y)) =
     Node((fst x', (snd x') * n), List.map (scaletree n) y)
 
 let factTree = (design (astToTree factorial) |> (scaletree 35.0))
 let sieveTree = (design (astToTree sieveOfEratosthenes) |> (scaletree 35.0))
-let fibonazziTree = (design (astToTree fibonazziNumbers) |> (scaletree 35.0))
+let fibonacciTree = (design (astToTree fibonacciNumbers) |> (scaletree 35.0))
 
 let factPostScript = postscript factTree
 let sievePostScript = postscript sieveTree
-let fibonazziPostScript = postscript fibonazziTree
+let fibonacciPostScript = postscript fibonacciTree
 
 open System.IO;
 
 File.WriteAllText("customFactorial.ps", factPostScript)
 File.WriteAllText("customSieveOfEratosthenes.ps", sievePostScript)
-File.WriteAllText("customFibonazziNumbers.ps", fibonazziPostScript)
+File.WriteAllText("customFibonacciNumbers.ps", fibonacciPostScript)
