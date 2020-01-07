@@ -1,6 +1,11 @@
 //#load "translated.fsx"
 //open Translated
 
+[<Literal>]
+let Padding = 2
+[<Literal>]
+let Charactersize = 7
+
 let treeWithCoords tree = 
     let rec coords x y (Node((label,offset), subtree)) =
         let x' = x + offset
@@ -20,13 +25,11 @@ type PostScript =
     | Label of (int * int) * string
 
 let rec treeToPostScript (Node((label, (x,y)), subtree)) =
-    let padding = 2
     let labelStartY = 10
-    let charactersize = 7
-    let labelEndY = labelStartY+charactersize+2*padding
+    let labelEndY = labelStartY+Charactersize+2*Padding
     let childrenX = List.map (fun (Node((_, (x,_)), _)) -> x) subtree
     [Line ((x,y), (x,y-labelStartY));
-    Label((x,y-labelStartY-charactersize-padding), label)]
+    Label((x,y-labelStartY-Charactersize-Padding), label)]
     @   match childrenX with
         | [] -> []
         | _ ->  let childLineBeginY = (List.map (fun (Node((_, (_,y)), _)) -> y) subtree) |> List.max
