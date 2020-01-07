@@ -50,7 +50,7 @@ let toPostScript list =
 
 let postscript' listToString tree =
     treeWithCoords tree
-    |> (scalingTree 7.0 100.0)
+    |> (scalingTree 7.0 40.0)
     |> floatTreeToInt
     // |> consider label height
     |> treeToPostScript
