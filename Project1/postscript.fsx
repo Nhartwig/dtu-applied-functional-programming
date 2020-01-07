@@ -1,108 +1,58 @@
 //#load "translated.fsx"
 //open Translated
-// function for generating postscript
-let postscript tree =
-    let start = "%!
-    <</PageSize[1400 1000]/ImagingBBox null>> setpagedevice
-    1 1 scale
-    700 999 translate
-    newpath
-    /Times-Roman findfont 10 scalefont setfont\n"
-    let ending = "stroke\nshowpage"
 
-    let positions x (subtree: Tree<string * float> list) = List.map (fun (Node(x', _)) -> x + (int (snd x'))) subtree
+let treeWithCoords tree = 
+    let rec coords x y (Node((label,offset), subtree)) =
+        let x' = x + offset
+        Node((label, (x',y)), List.map (coords x' (y-1.0)) subtree)
+    coords 0.0 0.0 tree
 
-    let drawLines pos y =
-        List.map (fun x ->
-            (sprintf "%i %i moveto\n" x (y))
-            + (sprintf "%i %i lineto\n" x (y - 10))) pos
-        |> List.fold (+) ""
+let rec scalingTree (xMultiplier) (yMultiplier) (Node((label, (x,y)), subtree))=
+    Node((label, (x * xMultiplier,y * yMultiplier)), List.map (scalingTree xMultiplier yMultiplier) subtree)
 
-    let rec postscript' (x: int, y: int) (Node((label, X'), subtree): Tree<string * float>) =
-        match subtree with
-        | [] ->
-            sprintf "%i %i moveto\n" ((int X') + x) (y - 10)
-            + sprintf "(%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" label
-        | _ ->
-            let X = int X'
-            let pos = positions (X + x) subtree
-            sprintf "%i %i moveto\n" (X + x) (y - 10)
-            + sprintf "(%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" label
-            + sprintf "%i %i moveto\n" (X + x) (y - 13) + sprintf "%i %i lineto\n" (X + x) (y - 40)
-            + sprintf "%i %i moveto\n" (List.min pos) (y - 40) + sprintf "%i %i lineto\n" (List.max pos) (y - 40)
-            + (drawLines pos (y - 40)) +
-            //"stroke\n" +
-            ((List.map (postscript' (X + x, y - 50)) subtree) |> List.fold (+) "")
+let rec floatTreeToInt (Node((label ,(x,y)), subtree)) =
+    Node((label, ((int x), (int y))), List.map floatTreeToInt subtree)
 
-    let middle = postscript' (0, 0) tree
-    start + middle + ending
+type PostScript =
+    | Line of (int * int) * (int * int)
+    | Label of (int * int) * string
 
-let postscriptConcat tree =
-    let start = "%!
-    <</PageSize[1400 1000]/ImagingBBox null>> setpagedevice
-    1 1 scale
-    700 999 translate
-    newpath
-    /Times-Roman findfont 10 scalefont setfont\n"
-    let ending = "\nstroke\nshowpage"
+let rec treeToPostScript (Node((label, (x,y)), subtree)) =
+    let padding = 2
+    let labelStartY = 10
+    let charactersize = 7
+    let labelEndY = labelStartY+charactersize+2*padding
+    let childrenX = List.map (fun (Node((_, (x,_)), _)) -> x) subtree
+    [Line ((x,y), (x,y-labelStartY));
+    Label((x,y-labelStartY-charactersize-padding), label)]
+    @   match childrenX with
+        | [] -> []
+        | _ ->  let childLineBeginY = (List.map (fun (Node((_, (_,y)), _)) -> y) subtree) |> List.max
+                [Line ((x,y-labelEndY), (x,childLineBeginY));
+                Line ((List.min childrenX, childLineBeginY), (List.max childrenX, childLineBeginY))]
+    @ List.collect (treeToPostScript) subtree
 
-    let positions x (subtree: Tree<string * float> list) = List.map (fun (Node(x', _)) -> x + (int (snd x'))) subtree
+let toPostScript list =
+    let start = ["%!";
+                "<</PageSize[1400 1000]/ImagingBBox null>> setpagedevice";
+                "1 1 scale";
+                "700 999 translate";
+                "newpath";
+                "/Times-Roman findfont 10 scalefont setfont"]
+    let ending= ["stroke";"showpage"]
+    let toStr ps =
+        match ps with
+        | Label ((x,y), label) ->   [sprintf "%i %i moveto" x y;
+                                    sprintf "(%s) dup stringwidth pop 2 div neg 0 rmoveto show" label]
+        | Line ((x1,y1), (x2,y2)) ->[sprintf "%i %i moveto" x1 y1; 
+                                    sprintf "%i %i lineto" x2 y2]
+    start @ (List.collect toStr list) @ ending
 
-    let drawLines pos y =
-        List.collect (fun x ->
-            [sprintf "%i %i moveto" x (y); sprintf "%i %i lineto" x (y - 10)]) pos
-
-    let rec postscript' (x: int, y: int) (Node((label, X'), subtree): Tree<string * float>) =
-        match subtree with
-        | [] ->
-            String.concat "\n" [sprintf "%i %i moveto" ((int X') + x) (y - 10);
-                sprintf "(%s) dup stringwidth pop 2 div neg 0 rmoveto show" label]
-        | _ ->
-            let X = int X'
-            let pos = positions (X + x) subtree
-            let strings = 
-                List.concat [ [sprintf "%i %i moveto" (X + x) (y - 10);
-                    sprintf "(%s) dup stringwidth pop 2 div neg 0 rmoveto show" label;
-                    sprintf "%i %i moveto" (X + x) (y - 13); 
-                    sprintf "%i %i lineto" (X + x) (y - 40);
-                    sprintf "%i %i moveto" (List.min pos) (y - 40); 
-                    sprintf "%i %i lineto" (List.max pos) (y - 40)];
-                    (drawLines pos (y - 40));
-                    //"stroke\n" +
-                    ((List.map (postscript' (X + x, y - 50)) subtree) ) ]
-            String.concat "\n" strings
-
-    let middle = postscript' (0, 0) tree
-    start + middle + ending
-
-
-let postscriptStringBuilder tree =
-    let sb = new System.Text.StringBuilder()
-    
-    let positions x (subtree: Tree<string * float> list) = List.map (fun (Node(x', _)) -> x + (int (snd x'))) subtree
-    
-    let drawLines pos y =
-        List.map (fun x ->
-            sb.Append(sprintf "%i %i moveto\n%i %i lineto\n" x y x (y - 10))) pos
-
-    let rec postscript' (x: int, y: int) (Node((label, X'), subtree): Tree<string * float>) =
-        match subtree with
-        | [] ->
-            sb.Append(sprintf "%i %i moveto\n(%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" ((int X') + x) (y - 10) label)
-        | _ ->
-            let X = int X'
-            let pos = positions (X + x) subtree
-            sb.Append(sprintf "%i %i moveto\n(%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" (X + x) (y - 10) label) |> ignore
-            sb.Append(sprintf "%i %i moveto\n%i %i lineto\n" (X + x) (y - 13) (X + x) (y - 40)) |> ignore
-            sb.Append(sprintf "%i %i moveto\n%i %i lineto\n" (List.min pos) (y - 40) (List.max pos) (y - 40)) |> ignore
-            drawLines pos (y - 40) |> ignore
-            List.map (postscript' (X + x, y - 50)) subtree |> ignore
-            sb.Append("")
-    
-    sb.Append("%!\n<</PageSize[1400 1000]/ImagingBBox null>> setpagedevice\n1 1 scale\n700 999 translate\nnewpath\n/Times-Roman findfont 10 scalefont setfont\n") |> ignore
-    
-    postscript' (0, 0) tree |> ignore
-            
-    sb.Append("stroke\nshowpage") |> ignore
-    
-    sb.ToString()
+let postscript listToString tree =
+    treeWithCoords tree
+    |> (scalingTree 7.0 100.0)
+    |> floatTreeToInt
+    // |> consider label height
+    |> treeToPostScript
+    |> toPostScript
+    |> listToString
