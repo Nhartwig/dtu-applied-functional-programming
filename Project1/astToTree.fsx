@@ -59,20 +59,23 @@ let astToTree (program : Program ) =
 // Testing part
 let program =
     P ([
-            VarDec(ITyp, "n");
+            VarDec(ITyp, "res");
             FunDec(Some(ITyp), "fact", [VarDec(ITyp, "n")], Block([
-                VarDec(ITyp, "res");
-                VarDec(ITyp, "i")
+                VarDec(ITyp, "x");
+                VarDec(ITyp, "y")
                     ],[
-                        Ass(AVar("res"), N(1));
-                        Ass(AVar("i"), N(2));
-                        Do(GC([(B(true), [Ass(AVar("y"), Access(AVar("x")))])]))
-                        Return(Some(Access(AVar("res"))))
+                        Ass(AVar("x"), Access(AVar("n")));
+                        Ass(AVar("y"), N(1));
+                        Do(GC([(Apply("!", [Apply("=", [Access(AVar("x")); N(0)])]), [
+                            Ass(AVar("x"), Apply("*", [Access(AVar("x")); Access(AVar("y"))]));
+                            Ass(AVar("x"), Apply("-", [Access(AVar("x")); N(1)]))
+                        ])]))
+                        Return(Some(Access(AVar("y"))))
             ]))
         ], 
         [
-            Ass(AVar("n"),N(5));
-            PrintLn (Apply("fact",[Access(AVar("n"))]))
+            Ass(AVar("res"),Apply("fact",[N(4)]));
+            PrintLn (Access(AVar("res")))
 ])
 
 printf "%A" program
