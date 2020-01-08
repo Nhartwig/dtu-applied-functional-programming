@@ -78,7 +78,33 @@ let factorial =
             PrintLn (Access(AVar("res")))
 ])
 
-let sieveOfEratosthenes = P([],[])
+// Prints all prime numbers to n
+let sieveOfEratosthenes = P([
+    FunDec(None, "sieveOfEratosthenes", [VarDec(ITyp, "n")], Block([
+        VarDec(ATyp(BTyp, None), "prime");
+        VarDec(ITyp, "p");
+        VarDec(ITyp, "p_tmp");
+        VarDec(ITyp, "i")
+            ], [
+                Ass(AVar("p"), N(2));
+                Do(GC([(Apply("<=", [Apply("*", [Access(AVar("p")); Access(AVar("p"))]); Access(AVar("n"))])), [
+                       Do(GC([(Apply("=", [B(true); Access(AIndex(AVar("prime"), Access(AVar("p"))))]), [
+                           Ass(AVar("p_tmp"), Apply("*", [Access(AVar("p")); Access(AVar("p"))]));
+                           Do(GC([(Apply("<=", [Access(AVar("p_tmp")); Access(AVar("n"))]), [
+                               Ass(AIndex(AVar("prime"), Access(AVar("p_tmp"))), B(false));
+                               Ass(AVar("p_tmp"), Apply("+", [Access(AVar("p_tmp")); Access(AVar("p"))]))
+                           ])]))
+                       ])]))
+                       Ass(AVar("p"), Apply("+", [Access(AVar("p")); N(1)]))
+                ]]))
+                Ass(AVar("i"), N(2));
+                Do(GC([(Apply("<=", [Access(AVar("i")); Access(AVar("n"))]), [
+                    Do(GC([Apply("=", [B(true); Access(AIndex(AVar("prime"), Access(AVar("i"))))]), [
+                        PrintLn(Access(AVar("i")))
+                    ]]))
+                ])]))
+    ]))
+], [])
 
 // 
 // write microC fibonnaci program first? 
