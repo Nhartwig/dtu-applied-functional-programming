@@ -56,7 +56,7 @@ let astToTree (program : Program ) =
     | P (decs, stms) -> Node("Program", (List.map decToTree decs) @ (List.map stmToTree stms))
 
 
-// Testing part
+// Calculating factorial using AST
 let factorial =
     P ([
             VarDec(ITyp, "res");
@@ -78,7 +78,7 @@ let factorial =
             PrintLn (Access(AVar("res")))
 ])
 
-// Prints all prime numbers to n
+// Prints all prime numbers to n using Sieve of Eratosthenes
 let sieveOfEratosthenes = P([
     FunDec(None, "sieveOfEratosthenes", [VarDec(ITyp, "n")], Block([
         VarDec(ATyp(BTyp, None), "prime");
@@ -106,8 +106,7 @@ let sieveOfEratosthenes = P([
     ]))
 ], [])
 
-// 
-// write microC fibonnaci program first? 
+// Generating fibonazzi numbers using AST
 let fibonacciNumbers = P([
                             VarDec(ITyp,"res");
                             FunDec(Some(ITyp), "fibonacci",[VarDec(ITyp, "n")], Block([
