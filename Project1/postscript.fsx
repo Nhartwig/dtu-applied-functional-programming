@@ -1,5 +1,8 @@
 //#load "translated.fsx"
 //open Translated
+#load "Timing.fsx"
+open Timing
+open System
 
 [<Literal>]
 let Padding = 2
@@ -111,16 +114,73 @@ let postscript' listToString tree =
     assert (xMultiplier >= 31.0)
     assert (yMultiplier >= float Charactersize)
 
-    genericTreeToString tree
-    |> design
-    |> treeWithCoords
-    |> (scalingTree xMultiplier yMultiplier)
-    |> (splitIntoMultilineLabels xMultiplier)
-    |> (makeSpaceForMultiLineLabels yMultiplier)
-    |> floatTreeToInt
-    |> treeToPostScript
-    |> toPostScript
-    |> listToString
+    genericTreeToString tree // 1
+    |> design   //  1
+    |> treeWithCoords   // 2 
+    |> (scalingTree xMultiplier yMultiplier) // 3
+    |> (splitIntoMultilineLabels xMultiplier) // 4
+    |> (makeSpaceForMultiLineLabels yMultiplier) // 4
+    |> floatTreeToInt // 5
+    |> treeToPostScript // 5
+    |> toPostScript  // 6
+    |> listToString  // 7
+
+
+let timeTree' listToString tree = 
+    let xMultiplier = ((float Charactersize) * 5.0)
+    let yMultiplier = 40.0
+
+    assert (xMultiplier >= 31.0)
+    assert (yMultiplier >= float Charactersize)
+
+    let t1 = timeOperation (fun() -> genericTreeToString tree |> design)
+    let t1_time = t1.millisecondsTaken
+    let t1_val = t1.returnedValue
+
+    let t2 = timeOperation (fun() -> treeWithCoords t1_val)
+    let t2_time = t2.millisecondsTaken
+    let t2_val = t2.returnedValue
+
+    let t3 = timeOperation (fun() -> (scalingTree xMultiplier yMultiplier) t2_val)
+    let t3_time = t3.millisecondsTaken
+    let t3_val = t3.returnedValue
+
+    let t4 = timeOperation (fun() -> (splitIntoMultilineLabels xMultiplier) t3_val |> (makeSpaceForMultiLineLabels yMultiplier) )
+    let t4_time = t4.millisecondsTaken
+    let t4_val = t4.returnedValue
+
+    let t5 = timeOperation (fun() -> floatTreeToInt t4_val |> treeToPostScript )
+    let t5_time = t5.millisecondsTaken
+    let t5_val = t5.returnedValue
+
+    let t6 = timeOperation (fun() -> toPostScript t5_val)
+    let t6_time = t6.millisecondsTaken
+    let t6_val = t6.returnedValue
+
+
+    let t7 = timeOperation (fun() -> listToString t6_val)
+    let t7_time = t7.millisecondsTaken
+    let t7_val = t7.returnedValue
+
+    let result =String.Format("T1: {0} 
+                            \n T2: {1}
+                            \n T3: {2}
+                            \n T4: {3}
+                            \n T5: {4} 
+                            \n T6: {5}
+                            \n T7: {6}", 
+                            t1_time, 
+                            t2_time, 
+                            t3_time, 
+                            t4_time, 
+                            t5_time, 
+                            t6_time, 
+                            t7_time)
+    printfn "%s" result
+    t7.returnedValue
+
+let postscriptTimed tree =
+    timeTree' (String.concat "\n") tree
 
 let postscript tree =
     postscript' (String.concat "\n") tree

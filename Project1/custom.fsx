@@ -8,7 +8,7 @@ open Postscript
 open Timing
 
 // Defining tree
-let tree =  randomtree 1
+let tree =  randomSquareTree 200 20
 
 let trees = treeBatch [100;200;300;400] 
 
@@ -27,12 +27,12 @@ let runTest tree =
     let timeBuilder = timeOperation (fun() -> postscript' (stringbuilder) tree)
     (timeDefault.millisecondsTaken, timeConcat.millisecondsTaken, timeBuilder.millisecondsTaken)
     
-let times = trees |> List.map (runTest)
+//let times = trees |> List.map (runTest)
 
-printf "%A" times
+//printf "%A" times
 
 // Testing postscript
-let postscripttree = (postscript tree)
+let postscripttree = (postscriptTimed tree)
 
 open System.IO;
 
