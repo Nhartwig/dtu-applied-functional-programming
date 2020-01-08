@@ -6,13 +6,9 @@ open Translated
 open Treegeneration
 open Postscript
 open Timing
-(* Our own part *)
-
 
 // Defining tree
-// Call squareTree to generate square tree x units deep by x units wide
 let tree =  randomtree 1
-            //|> (scaletree 5.0)
 
 let trees = treeBatch [100;200;300;400] 
 
@@ -34,11 +30,11 @@ let runTest tree =
 let times = trees |> List.map (runTest)
 
 printf "%A" times
-// Testing postscript
 
+// Testing postscript
 let postscripttree = (postscript tree)
-//printf "%s" postscripttree
 
 open System.IO;
 
+// save postscript to file
 File.WriteAllText("test.ps", postscripttree)
