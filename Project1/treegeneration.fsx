@@ -38,3 +38,20 @@ let randomSquareTree width depth =
             [0 .. width-1] |> List.map (fun i -> Node("s", (List.zip s xs) |> (List.filter (fun (_, j) -> j = i )) |> (List.map (fst)) ))
         ) ([1 .. width] |> List.map (fun _ -> Node("l", [])))
     Node("r", nodes)
+     
+let createTree nodeAmount leafAmount =
+    let rec subtree nodesLeft depth =
+        match nodesLeft, depth with
+        | nl, _ when nl < 1 -> []
+        | _, _ when nodesLeft < leafAmount -> [0 .. (nodesLeft + leafAmount)] |> List.map (fun _ -> Node(sprintf "%i" depth, []))
+        | _, _ -> [1 .. leafAmount] |> List.map (fun i -> Node(sprintf "%i" depth, subtree (nodesLeft - (leafAmount * i) - 1) (depth + 1)))
+    Node("0", subtree (nodeAmount - 1 - leafAmount) 1)
+    
+let easyTree nodeAmount =
+    let rec easyTree' nodesLeft depth =
+        match nodesLeft with
+        | 0 -> []
+        | _ -> [Node(sprintf "%i" depth, easyTree' (nodesLeft - 1) (depth + 1))]
+    Node("0", easyTree' (nodeAmount - 1) 1)
+    
+let treeBatch treeSizes = treeSizes |> List.map (fun size -> easyTree size)
