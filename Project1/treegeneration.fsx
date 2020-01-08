@@ -31,7 +31,6 @@ let randomSquareTree width depth =
         |> List.map (fun _ ->
             [1 .. width] |> List.map (fun _ -> rand.Next(0,width))
         ) 
-    printf "%A" randomizedMatrix
     let nodes = 
         randomizedMatrix
         |> List.fold (fun s xs -> 
