@@ -108,13 +108,9 @@ let fibonacciNumbers = P([
                             PrintLn (Access(AVar("res")))
 ])
 
-
-let rec scaletree n (Node(x', y)) =
-    Node((fst x', (snd x') * n), List.map (scaletree n) y)
-
-let factTree = (design (astToTree factorial) |> (scaletree 35.0))
-let sieveTree = (design (astToTree sieveOfEratosthenes) |> (scaletree 35.0))
-let fibonacciTree = (design (astToTree fibonacciNumbers) |> (scaletree 35.0))
+let factTree = design (astToTree factorial)
+let sieveTree = (design (astToTree sieveOfEratosthenes) )
+let fibonacciTree = (design (astToTree fibonacciNumbers) )
 
 let factPostScript = postscript factTree
 let sievePostScript = postscript sieveTree
