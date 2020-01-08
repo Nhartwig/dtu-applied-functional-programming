@@ -101,6 +101,9 @@ let toPostScript list =
                                     sprintf "%i %i lineto" x2 y2]
     start @ (List.collect toStr list) @ ending
 
+let rec genericTreeToString (Node(x, subtree)) =
+    Node(sprintf "%A" x, List.map genericTreeToString subtree)
+
 let postscript' listToString tree =
     let xMultiplier = ((float Charactersize) * 5.0)
     let yMultiplier = 40.0
@@ -108,7 +111,9 @@ let postscript' listToString tree =
     assert (xMultiplier >= 31.0)
     assert (yMultiplier >= float Charactersize)
 
-    treeWithCoords tree
+    genericTreeToString tree
+    |> design
+    |> treeWithCoords
     |> (scalingTree xMultiplier yMultiplier)
     |> (splitIntoMultilineLabels xMultiplier)
     |> (makeSpaceForMultiLineLabels yMultiplier)

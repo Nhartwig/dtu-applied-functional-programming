@@ -9,9 +9,9 @@ open Timing
 
 // Defining tree
 // Call squareTree to generate square tree x units deep by x units wide
-let sqrndtree l =  (randomSquareTree l l) |> (design)
-let rndtree l = (randomtree l) |> (design)
-let sqtree l = (squareTree l) |> (design)
+let sqrndtree l =  (randomSquareTree l l)
+let rndtree l = (randomtree l)
+let sqtree l = (squareTree l)
 
 // generate a tree for each list element
 let genTrees tree sizes = List.map (fun size -> (tree size)) sizes

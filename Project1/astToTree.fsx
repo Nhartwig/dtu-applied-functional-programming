@@ -134,9 +134,9 @@ let fibonacciNumbers = P([
                             PrintLn (Access(AVar("res")))
 ])
 
-let factTree = design (astToTree factorial)
-let sieveTree = (design (astToTree sieveOfEratosthenes) )
-let fibonacciTree = (design (astToTree fibonacciNumbers) )
+let factTree = astToTree factorial
+let sieveTree = astToTree sieveOfEratosthenes
+let fibonacciTree = astToTree fibonacciNumbers
 
 let factPostScript = postscript factTree
 let sievePostScript = postscript sieveTree

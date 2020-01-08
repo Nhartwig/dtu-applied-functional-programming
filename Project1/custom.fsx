@@ -12,7 +12,6 @@ open Timing
 // Defining tree
 // Call squareTree to generate square tree x units deep by x units wide
 let tree =  randomtree 1
-            |> (design)
             //|> (scaletree 5.0)
 
 let trees = treeBatch [100;200;300;400] 
@@ -26,14 +25,13 @@ let timeBuilder = timeOperation (fun() -> postscript' (stringbuilder) tree)
 printf "\n\nTime for default: %i\nTime for Concat:  %i\nTime for Builder: %i\n\n" (timeDefault.millisecondsTaken) (timeConcat.millisecondsTaken) (timeBuilder.millisecondsTaken)
 
 let runTest tree =
-    let convertedTree = design tree
-    let timeDefault = timeOperation (fun() -> postscript' (List.fold (fun s x -> s + (x) ) "" ) convertedTree)
-    let timeConcat = timeOperation (fun() -> postscript' (String.concat "\n") convertedTree)
+    let timeDefault = timeOperation (fun() -> postscript' (List.fold (fun s x -> s + (x) ) "" ) tree)
+    let timeConcat = timeOperation (fun() -> postscript' (String.concat "\n") tree)
     let stringbuilder = fun xs -> xs |> Seq.fold (fun (sb:System.Text.StringBuilder) (s: string) -> sb.Append(s) ) (System.Text.StringBuilder()) |> fun sb -> sb.ToString()
-    let timeBuilder = timeOperation (fun() -> postscript' (stringbuilder) convertedTree)
+    let timeBuilder = timeOperation (fun() -> postscript' (stringbuilder) tree)
     (timeDefault.millisecondsTaken, timeConcat.millisecondsTaken, timeBuilder.millisecondsTaken)
     
-let times = trees |> List.map (fun t -> runTest t)
+let times = trees |> List.map (runTest)
 
 printf "%A" times
 // Testing postscript
