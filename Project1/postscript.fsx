@@ -102,7 +102,7 @@ let toPostScript list =
     start @ (List.collect toStr list) @ ending
 
 let rec genericTreeToString (Node(x, subtree)) =
-    Node(sprintf "%A" x, List.map genericTreeToString subtree)
+    Node(sprintf "%O" x, List.map genericTreeToString subtree)
 
 let postscript' listToString tree =
     let xMultiplier = ((float Charactersize) * 5.0)
