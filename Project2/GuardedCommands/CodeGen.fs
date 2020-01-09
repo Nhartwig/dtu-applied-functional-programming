@@ -32,6 +32,8 @@ module CodeGeneration =
 
        | Apply("-", [e]) -> CE vEnv fEnv e @  [CSTI 0; SWAP; SUB]
 
+       | Apply("!", [e]) -> CE vEnv fEnv e @ [NOT]
+
        | Apply("&&",[b1;b2]) -> let labend   = newLabel()
                                 let labfalse = newLabel()
                                 CE vEnv fEnv b1 @ [IFZERO labfalse] @ CE vEnv fEnv b2
