@@ -1,0 +1,7 @@
+/bin
+/obj
+Lexer.fs
+Parser.fs
+Parser.fsi
+Parser.fsyacc.output
+PersonalSettings.fsx
