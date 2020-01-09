@@ -32,16 +32,19 @@ module CodeGeneration =
 
        | Apply("-", [e]) -> CE vEnv fEnv e @  [CSTI 0; SWAP; SUB]
 
+       | Apply("!", [e]) -> CE vEnv fEnv e @ [NOT]
+
        | Apply("&&",[b1;b2]) -> let labend   = newLabel()
                                 let labfalse = newLabel()
                                 CE vEnv fEnv b1 @ [IFZERO labfalse] @ CE vEnv fEnv b2
                                 @ [GOTO labend; Label labfalse; CSTI 0; Label labend]
 
-       | Apply(o,[e1;e2]) when List.exists (fun x -> o=x) ["+"; "*"; "="]
+       | Apply(o,[e1;e2]) when List.exists (fun x -> o=x) ["+"; "*"; "="; "-"]
                              -> let ins = match o with
                                           | "+"  -> [ADD]
                                           | "*"  -> [MUL]
                                           | "="  -> [EQ] 
+                                          | "-"  -> [SUB]
                                           | _    -> failwith "CE: this case is not possible"
                                 CE vEnv fEnv e1 @ CE vEnv fEnv e2 @ ins 
 
@@ -76,9 +79,38 @@ module CodeGeneration =
        | Ass(acc,e)       -> CA vEnv fEnv acc @ CE vEnv fEnv e @ [STI; INCSP -1]
 
        | Block([],stms) ->   CSs vEnv fEnv stms
+       
+       | Alt (GC gcs) ->  let abnormalstop = [CSTI -1; PRINTI; STOP]
+                          match gcs with
+                          | [] -> abnormalstop
+                          | xs -> let labelend = newLabel()
+                                  let insts = List.fold (GCfold vEnv fEnv labelend) ([], None) xs
+                                  fst insts 
+                                  @ [Label (Option.get (snd insts))] @ abnormalstop
+                                  @ [Label labelend]
+
+       | Do (GC gcs) ->   match gcs with 
+                          | [] -> []
+                          | xs -> let labelstart = newLabel()
+                                  let insts = List.fold (GCfold vEnv fEnv labelstart) ([], None) xs
+                                  [Label labelstart]
+                                  @ (fst insts)
+                                  @ [Label (Option.get (snd insts))]
 
        | _                -> failwith "CS: this statement is not supported yet"
 
+   and GCfold vEnv fEnv goto (insts, nextLabel) (exp, stms) =
+        let newnext = newLabel()
+        let prevLabel = match nextLabel with
+                        | None -> []
+                        | Some label -> [Label label]
+        let is = 
+          prevLabel
+          @ (CE vEnv fEnv exp)
+          @ [IFZERO newnext]
+          @ (List.collect (CS vEnv fEnv) stms)
+          @ [GOTO goto]
+        (insts @ is, Some(newnext))
    and CSs vEnv fEnv stms = List.collect (CS vEnv fEnv) stms 
 
 
