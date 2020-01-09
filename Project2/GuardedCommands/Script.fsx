@@ -81,10 +81,10 @@ List.item 2 pts ;;
 
 // Test of programs covered by the first task (Section 3.7):
 List.iter exec ["gcs/Ex1.gc"; "gcs/Ex2.gc";"gcs/Ex3.gc"; "gcs/Ex4.gc"; "gcs/Ex5.gc"; "gcs/Ex6.gc"; "gcs/Skip.gc"];;
-(*
-// Test of programs covered by the second task (Section 4.3):
-List.iter exec ["Ex7.gc"; "fact.gc"; "factRec.gc"; "factCBV.gc"];;
 
+// Test of programs covered by the second task (Section 4.3):
+List.iter exec ["gcs/Ex7.gc"; "gcs/fact.gc"; "gcs/factRec.gc"; "gcs/factCBV.gc"];;
+(*
 // Test of programs covered by the fourth task (Section 5.4):
 List.iter exec ["A0.gc"; "A1.gc"; "A2.gc"; "A3.gc"];;
 
