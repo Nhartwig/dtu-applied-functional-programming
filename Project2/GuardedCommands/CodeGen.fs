@@ -80,11 +80,13 @@ module CodeGeneration =
 
        | Block([],stms) ->   CSs vEnv fEnv stms
        
-       | Alt (GC gcs) ->  match gcs with
-                          | [] -> [STOP]
+       | Alt (GC gcs) ->  let abnormalstop = [CSTI -1; PRINTI; STOP]
+                          match gcs with
+                          | [] -> abnormalstop
                           | xs -> let labelend = newLabel()
                                   let insts = List.fold (GCfold vEnv fEnv labelend) ([], None) xs
-                                  fst insts @ [Label (Option.get (snd insts)); STOP]
+                                  fst insts 
+                                  @ [Label (Option.get (snd insts))] @ abnormalstop
                                   @ [Label labelend]
 
        | Do (GC gcs) ->   match gcs with 
