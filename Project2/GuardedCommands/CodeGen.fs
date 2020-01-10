@@ -94,33 +94,24 @@ module CodeGeneration =
                           match gcs with
                           | [] -> abnormalstop
                           | xs -> let labelend = newLabel()
-                                  let insts = List.fold (GCfold vEnv fEnv labelend) ([], None) xs
-                                  fst insts 
-                                  @ [Label (Option.get (snd insts))] @ abnormalstop
-                                  @ [Label labelend]
+                                  List.collect (CSGC vEnv fEnv labelend) xs 
+                                  @ abnormalstop @ [Label labelend]
 
        | Do (GC gcs) ->   match gcs with 
                           | [] -> []
                           | xs -> let labelstart = newLabel()
-                                  let insts = List.fold (GCfold vEnv fEnv labelstart) ([], None) xs
                                   [Label labelstart]
-                                  @ (fst insts)
-                                  @ [Label (Option.get (snd insts))]
+                                  @ List.collect (CSGC vEnv fEnv labelstart) xs
 
        | _                -> failwith "CS: this statement is not supported yet"
 
-   and GCfold vEnv fEnv goto (insts, nextLabel) (exp, stms) =
-        let newnext = newLabel()
-        let prevLabel = match nextLabel with
-                        | None -> []
-                        | Some label -> [Label label]
-        let is = 
-          prevLabel
-          @ (CE vEnv fEnv exp)
-          @ [IFZERO newnext]
-          @ (List.collect (CS vEnv fEnv) stms)
-          @ [GOTO goto]
-        (insts @ is, Some(newnext))
+   and CSGC vEnv fEnv goto (exp, stms) =
+        let nextLabel = newLabel()
+        (CE vEnv fEnv exp)
+        @ [IFZERO nextLabel]
+        @ (List.collect (CS vEnv fEnv) stms)
+        @ [GOTO goto; Label nextLabel]
+   
    and CSs vEnv fEnv stms = List.collect (CS vEnv fEnv) stms 
 
 
