@@ -69,6 +69,8 @@ module TypeCheck =
                                          else failwith "illtyped assignment"                                
 
                          | Block([],stms) -> List.iter (tcS gtenv ltenv) stms
+                         | Block(decs, stms) -> let ltenv = tcLDecs ltenv decs
+                                                List.iter (tcS gtenv ltenv) stms
                          | Alt (GC(gcs)) -> List.iter (tcGC gtenv ltenv) gcs
                          | Do (GC(gcs))  -> List.iter (tcGC gtenv ltenv) gcs
                          | Return (Some(e)) -> match Map.tryFind "function" ltenv with
