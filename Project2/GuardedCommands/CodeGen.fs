@@ -58,13 +58,17 @@ module CodeGeneration =
                                           | _    -> failwith "CE: this case is not possible"
                                 CE vEnv fEnv e1 @ CE vEnv fEnv e2 @ ins 
 
+       | Apply(f, es) -> let (label, _, _) = Map.find f fEnv
+                         List.collect (CE vEnv fEnv) es
+                         @ [CALL (List.length es, label)]
+       
        | _            -> failwith "CE: not supported yet"
        
 
 /// CA vEnv fEnv acc gives the code for an access acc on the basis of a variable and a function environment
    and CA vEnv fEnv = function | AVar x         -> match Map.find x (fst vEnv) with
                                                    | (GloVar addr,_) -> [CSTI addr]
-                                                   | (LocVar addr,_) -> failwith "CA: Local variables not supported yet"
+                                                   | (LocVar addr,_) -> [GETBP; CSTI addr; ADD]
                                | AIndex(acc, e) -> failwith "CA: array indexing not supported yet" 
                                | ADeref e       -> failwith "CA: pointer dereferencing not supported yet"
 
@@ -90,6 +94,10 @@ module CodeGeneration =
 
        | Block([],stms) ->   CSs vEnv fEnv stms
        
+       | Block(decs, stms) -> let (vEnv, code) = List.fold (fun (env, c) (VarDec(t,x)) -> let (e, c') = allocate LocVar (t,x) env
+                                                                                          (e, c @ c')) (vEnv, []) decs
+                              code @ CSs vEnv fEnv stms @ [INCSP -(List.length decs)]
+
        | Alt (GC gcs) ->  let abnormalstop = [CSTI -1; PRINTI; STOP]
                           match gcs with
                           | [] -> abnormalstop
@@ -102,6 +110,10 @@ module CodeGeneration =
                           | xs -> let labelstart = newLabel()
                                   [Label labelstart]
                                   @ List.collect (CSGC vEnv fEnv labelstart) xs
+
+       | Return (Some e) -> CE vEnv fEnv e @ [RET (snd vEnv)]
+
+       | Return None     -> failwith "CS: procedures not supported"
 
        | _                -> failwith "CS: this statement is not supported yet"
 
@@ -129,14 +141,28 @@ module CodeGeneration =
              | VarDec (typ, var) -> let (vEnv1, code1) = allocate GloVar (typ, var) vEnv
                                     let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv
                                     (vEnv2, fEnv2, code1 @ code2)
-             | FunDec (tyOpt, f, xs, body) -> failwith "makeGlobalEnvs: function/procedure declarations not supported yet"
+             | FunDec (tyOpt, f, xs, body) 
+                -> addv decr vEnv (Map.add f (newLabel(), tyOpt, xs) fEnv)
+
        addv decs (Map.empty, 0) Map.empty
 
 /// CP prog gives the code for a program prog
    let CP (P(decs,stms)) = 
        let _ = resetLabels ()
        let ((gvM,_) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
-       initCode @ CSs gvEnv fEnv stms @ [STOP]     
+       let compilefun (tyOpt, f, xs, body) =
+        let (labf, _, paras) = Map.find f fEnv
+        let (envf, fdepthf) = List.fold (fun (env, fdepth) (VarDec(t,x)) -> (Map.add x (LocVar fdepth, t) env, fdepth+1)) (gvM, 0) paras
+        let code = CS (envf, fdepthf) fEnv body
+        [Label labf] @ code @ [RET (List.length paras-1)]
+       let functions = 
+        List.choose (function
+                     | FunDec (rTy, name, argTy, body) -> Some(compilefun(rTy, name, argTy, body))
+                     | VarDec _ -> None)
+                     decs
+       
+       initCode @ CSs gvEnv fEnv stms @ [STOP]
+       @ List.concat functions
 
 
 

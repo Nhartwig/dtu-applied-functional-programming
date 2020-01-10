@@ -20,6 +20,8 @@ module TypeCheck =
          | Apply(f,[e1;e2]) when List.exists (fun x ->  x=f) ["+";"*"; "-"; "="; "<>"; "<"; ">"; "<="; ">="; "&&"; "||"]        
                             -> tcDyadic gtenv ltenv f e1 e2   
 
+         | Apply(f, es)     -> tcNaryFunction gtenv ltenv f es
+
          | _                -> failwith "tcE: not supported yet"
 
    and tcMonadic gtenv ltenv f e = match (f, tcE gtenv ltenv e) with
@@ -33,7 +35,14 @@ module TypeCheck =
                                       | (o, BTyp, BTyp) when List.exists (fun x ->  x=o) ["&&"; "||"; "="; "<>"]     -> BTyp 
                                       | _                      -> failwith("illegal/illtyped dyadic expression: " + f)
 
-   and tcNaryFunction gtenv ltenv f es = failwith "type check: functions not supported yet"
+   and tcNaryFunction gtenv ltenv f es = match Map.tryFind f gtenv with
+                                         | None     -> failwith "Illegal call to undefined function/procedure"
+                                         | Some(f') -> match f' with
+                                                       | FTyp(es', Some(t)) -> if List.length es = List.length es' then () else failwith "illtyped function call with too few arguments"
+                                                                               List.map (tcE gtenv ltenv) es
+                                                                               |> List.iter2 (fun e1 e2 -> if e1=e2 then () else failwith "illtyped function argument of wrong type") es'
+                                                                               t
+                                                       | _                  -> failwith "Illegal call of procedure as a function"
  
    and tcNaryProcedure gtenv ltenv f es = failwith "type check: procedures not supported yet"
       
@@ -60,17 +69,35 @@ module TypeCheck =
                                          else failwith "illtyped assignment"                                
 
                          | Block([],stms) -> List.iter (tcS gtenv ltenv) stms
+                         | Block(decs, stms) -> let ltenv = tcLDecs ltenv decs
+                                                List.iter (tcS gtenv ltenv) stms
                          | Alt (GC(gcs)) -> List.iter (tcGC gtenv ltenv) gcs
                          | Do (GC(gcs))  -> List.iter (tcGC gtenv ltenv) gcs
+                         | Return (Some(e)) -> match Map.tryFind "function" ltenv with
+                                               | Some(t) -> if t = (tcE gtenv ltenv e) then () else failwith "illegal return type"
+                                               | None -> failwith "illegal call of return outside function"
                          | _              -> failwith "tcS: this statement is not supported yet"
 
    and tcGC gtenv ltenv (exp, stms) = match tcE gtenv ltenv exp with
                                       | BTyp -> List.iter (tcS gtenv ltenv) stms
                                       | _    -> failwith "illegal GC expression, it has to be a boolean"
 
+   and tcLDec ltenv = function
+                      | VarDec(t,s) -> Map.add s t ltenv
+                      | _           -> failwith "ill-typed, sub functions is not allowed"
+
+   and tcLDecs ltenv = function
+                       | dec::decs -> tcLDecs (tcLDec ltenv dec) decs
+                       | _         -> ltenv
+
    and tcGDec gtenv = function  
-                      | VarDec(t,s)               -> Map.add s t gtenv
-                      | FunDec(topt,f, decs, stm) -> failwith "type check: function/procedure declarations not yet supported"
+                      | VarDec(t,s)                   -> Map.add s t gtenv
+                      | FunDec(Some(t), f, decs, stm) -> let ltenv = Map.add "function" t Map.empty
+                                                         let ltenv = tcLDecs ltenv decs
+                                                         let gtenv = Map.add f (FTyp(List.map (fun (VarDec(t,_)) -> t) decs, Some(t))) gtenv
+                                                         tcS gtenv ltenv stm
+                                                         gtenv    
+                      | FunDec(None   , f, decs, stm) -> failwith "type check: procedure declarations not yet supported"
 
    and tcGDecs gtenv = function
                        | dec::decs -> tcGDecs (tcGDec gtenv dec) decs
