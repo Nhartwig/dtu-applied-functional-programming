@@ -96,7 +96,7 @@ module CodeGeneration =
        
        | Block(decs, stms) -> let (vEnv, code) = List.fold (fun (env, c) (VarDec(t,x)) -> let (e, c') = allocate LocVar (t,x) env
                                                                                           (e, c @ c')) (vEnv, []) decs
-                              code @ CSs vEnv fEnv stms
+                              code @ CSs vEnv fEnv stms @ [INCSP -(List.length decs)]
 
        | Alt (GC gcs) ->  let abnormalstop = [CSTI -1; PRINTI; STOP]
                           match gcs with
