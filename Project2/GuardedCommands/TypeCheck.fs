@@ -7,6 +7,12 @@ open GuardedCommands.Frontend.AST
 
 module TypeCheck = 
 
+   let ftypcomp t1 t2 =
+      let basic t =
+         match t with
+         | ATyp(atyp,_) -> atyp
+         | x -> x
+      basic t1 = basic t2
 /// tcE gtenv ltenv e gives the type for expression e on the basis of type environments gtenv and ltenv
 /// for global and local variables 
    let rec tcE gtenv ltenv = function                            
@@ -40,7 +46,7 @@ module TypeCheck =
                                          | Some(f') -> match f' with
                                                        | FTyp(es', Some(t)) -> if List.length es = List.length es' then () else failwith "illtyped function call with too few arguments"
                                                                                List.map (tcE gtenv ltenv) es
-                                                                               |> List.iter2 (fun e1 e2 -> if e1=e2 then () else failwith "illtyped function argument of wrong type") es'
+                                                                               |> List.iter2 (fun e1 e2 -> if ftypcomp e1 e2 then () else failwith "illtyped function argument of wrong type") es'
                                                                                t
                                                        | _                  -> failwith "Illegal call of procedure as a function"
  
@@ -56,7 +62,10 @@ module TypeCheck =
                                          | None   -> failwith ("no declaration for : " + x)
                                          | Some t -> t
                              | Some t -> t            
-         | AIndex(acc, e) -> failwith "tcA: array indexing not supported yes"
+         | AIndex(acc, e) -> match tcA gtenv ltenv acc with
+                             | ATyp (atyp,x) -> if (tcE gtenv ltenv e) = ITyp then atyp else failwith "illtyped array index"
+                             | _             -> failwith "Illegal indexing of non array"
+                             
          | ADeref e       -> failwith "tcA: pointer dereferencing not supported yes"
  
 
