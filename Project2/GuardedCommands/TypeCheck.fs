@@ -91,8 +91,12 @@ module TypeCheck =
                                       | BTyp -> List.iter (tcS gtenv ltenv) stms
                                       | _    -> failwith "illegal GC expression, it has to be a boolean"
 
+   and addToEnv env s = function
+                        | ATyp(_, None) -> failwith "Illegal declaration of array without size"
+                        | t -> Map.add s t env
+
    and tcLDec ltenv = function
-                      | VarDec(t,s) -> Map.add s t ltenv
+                      | VarDec(t,s) -> addToEnv ltenv s t 
                       | _           -> failwith "ill-typed, sub functions is not allowed"
 
    and tcLDecs ltenv = function
@@ -100,7 +104,7 @@ module TypeCheck =
                        | _         -> ltenv
 
    and tcGDec gtenv = function  
-                      | VarDec(t,s)                   -> Map.add s t gtenv
+                      | VarDec(t,s)                   -> addToEnv gtenv s t
                       | FunDec(Some(t), f, decs, stm) -> let ltenv = Map.add "function" t Map.empty
                                                          let ltenv = tcLDecs ltenv decs
                                                          let gtenv = Map.add f (FTyp(List.map (fun (VarDec(t,_)) -> t) decs, Some(t))) gtenv
