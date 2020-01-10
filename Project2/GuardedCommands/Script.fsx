@@ -15,7 +15,7 @@ It should look something like this
 #load "CodeGen.fs"
 #load "CodeGenOpt.fs"
 #load "Util.fs"
-
+#load "Testing.fsx"
 
 open GuardedCommands.Util
 open GuardedCommands.Frontend.TypeCheck
@@ -27,10 +27,16 @@ open CompilerUtil
 
 open Machine
 open VirtualMachine
-
+open Testing
 
 
 System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__;;
+
+// testing the test module
+
+let fail = Testing.test [0;0] ["gcs-errors/Ex0.gc"; "gcs-errors/Ex1.gc"]
+let pass = Testing.test [0;0;0;0;0;0;0] ["gcs/Ex1.gc"; "gcs/Ex2.gc";"gcs/Ex3.gc"; "gcs/Ex4.gc"; "gcs/Ex5.gc"; "gcs/Ex6.gc"; "gcs/Skip.gc"]
+
 
 // The Ex0.gc example:
 
