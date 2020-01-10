@@ -103,10 +103,20 @@ module TypeCheck =
                        | dec::decs -> tcLDecs (tcLDec ltenv dec) decs
                        | _         -> ltenv
 
+   and tcFDec ltenv = function
+                      | VarDec(t,s) -> match t with
+                                       | ATyp(_, Some(_)) -> failwith "ill typed function argument, array with size"
+                                       | _ -> Map.add s t ltenv
+                      | _           -> failwith "ill-typed, sub functions is not allowed"
+
+   and tcFDecs ltenv = function
+                       | dec::decs -> tcFDecs (tcFDec ltenv dec) decs
+                       | _         -> ltenv
+
    and tcGDec gtenv = function  
                       | VarDec(t,s)                   -> addToEnv gtenv s t
                       | FunDec(Some(t), f, decs, stm) -> let ltenv = Map.add "function" t Map.empty
-                                                         let ltenv = tcLDecs ltenv decs
+                                                         let ltenv = tcFDecs ltenv decs
                                                          let gtenv = Map.add f (FTyp(List.map (fun (VarDec(t,_)) -> t) decs, Some(t))) gtenv
                                                          tcS gtenv ltenv stm
                                                          gtenv    
