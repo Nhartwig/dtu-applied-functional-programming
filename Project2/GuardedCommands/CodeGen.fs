@@ -94,7 +94,10 @@ module CodeGeneration =
    let rec CS vEnv fEnv = function
        | PrintLn e        -> CE vEnv fEnv e @ [PRINTI; INCSP -1] 
 
-       | Ass(accs,es)     -> List.collect (fun (acc,e) -> CA vEnv fEnv acc @ CE vEnv fEnv e @ [STI; INCSP -1]) (List.zip accs es)
+       | Ass(accs,es)     -> //List.collect (CE vEnv fEnv) es
+                             //@ List.collect (fun acc -> CA vEnv fEnv acc @ [SWAP; STI; INCSP -1] ) (List.rev accs)
+                             List.collect (fun (acc,e) -> CE vEnv fEnv e @ CA vEnv fEnv acc) (List.zip accs es)
+                             @ ([1 .. (List.length es)] |> List.collect (fun _ -> [SWAP; STI; INCSP -1]))
 
        | Block([],stms) ->   CSs vEnv fEnv stms
        
