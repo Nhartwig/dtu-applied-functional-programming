@@ -72,6 +72,7 @@ module CodeGeneration =
                                | AIndex(acc, e) -> failwith "CA: array indexing not supported yet" 
                                | ADeref e       -> failwith "CA: pointer dereferencing not supported yet"
 
+   let Abnormalstop = List.collect (fun x -> [CSTI (int x); PRINTC]) ['E';'R';'R';'O';'R'] @ [STOP]
   
 (* Bind declared variable in env and generate code to allocate it: *)   
    let allocate (kind : int -> Var) (typ, x) (vEnv : varEnv)  =
@@ -98,12 +99,11 @@ module CodeGeneration =
                                                                                           (e, c @ c')) (vEnv, []) decs
                               code @ CSs vEnv fEnv stms @ [INCSP -(List.length decs)]
 
-       | Alt (GC gcs) ->  let abnormalstop = [CSTI -1; PRINTI; STOP]
-                          match gcs with
-                          | [] -> abnormalstop
+       | Alt (GC gcs) ->  match gcs with
+                          | [] -> Abnormalstop
                           | xs -> let labelend = newLabel()
                                   List.collect (CSGC vEnv fEnv labelend) xs 
-                                  @ abnormalstop @ [Label labelend]
+                                  @ Abnormalstop @ [Label labelend]
 
        | Do (GC gcs) ->   match gcs with 
                           | [] -> []
