@@ -159,7 +159,8 @@ module CodeGenerationOpt =
        match stm with
        | PrintLn e        -> CE e vEnv fEnv (PRINTI:: INCSP -1 :: k) 
 
-       | Ass(acc,e)       -> CA acc vEnv fEnv (CE e vEnv fEnv (STI:: addINCSP -1 k))
+       | Ass(acc,e)       -> failwith "removed assignment since it doesn't work with multi assignment, TODO fix"
+                             //CA acc vEnv fEnv (CE e vEnv fEnv (STI:: addINCSP -1 k))
 
        | Block([],stms)   -> CSs stms vEnv fEnv k
 
