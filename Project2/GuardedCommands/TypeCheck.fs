@@ -64,9 +64,14 @@ module TypeCheck =
 /// for global and local variables and the possible type of return expressions 
    and tcS gtenv ltenv = function                           
                          | PrintLn e -> ignore(tcE gtenv ltenv e)
-                         | Ass(acc,e) -> if tcA gtenv ltenv acc = tcE gtenv ltenv e 
+                         | Ass(acc,es)-> if (List.length acc <> List.length es) then failwith "illtyped assignment, size unequal"
+                                         let es = List.map (tcE gtenv ltenv) es
+                                         let acc = List.map (tcA gtenv ltenv) acc
+                                         if List.zip es acc
+                                            |> List.map (fun (e,a) -> e=a)
+                                            |> List.forall (id)
                                          then ()
-                                         else failwith "illtyped assignment"                                
+                                         else failwith "illtyped assignment, miss matching types"                                
 
                          | Block([],stms) -> List.iter (tcS gtenv ltenv) stms
                          | Block(decs, stms) -> let ltenv = tcLDecs ltenv decs
