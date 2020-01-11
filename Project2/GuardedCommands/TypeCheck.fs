@@ -78,7 +78,7 @@ module TypeCheck =
                                          else failwith "illtyped assignment"                                
 
                          | Block([],stms) -> List.iter (tcS gtenv ltenv) stms
-                         | Block(decs, stms) -> let ltenv = tcLDecs ltenv decs
+                         | Block(decs, stms) -> let ltenv = tcLDecs false ltenv decs
                                                 List.iter (tcS gtenv ltenv) stms
                          | Alt (GC(gcs)) -> List.iter (tcGC gtenv ltenv) gcs
                          | Do (GC(gcs))  -> List.iter (tcGC gtenv ltenv) gcs
@@ -91,40 +91,29 @@ module TypeCheck =
                                       | BTyp -> List.iter (tcS gtenv ltenv) stms
                                       | _    -> failwith "illegal GC expression, it has to be a boolean"
 
-   and addToEnv env s = function
-                        | ATyp(_, None) -> failwith "Illegal declaration of array without size"
-                        | t -> Map.add s t env
+   and addToEnv isFuncDec env s = 
+      function
+      | ATyp(_, None) when not isFuncDec -> failwith "Illegal declaration of array without size"
+      | ATyp(_, (Some _)) when isFuncDec -> failwith "ill-typed function argument, array size not allowed"
+      | t -> Map.add s t env
 
-   and tcLDec ltenv = function
-                      | VarDec(t,s) -> addToEnv ltenv s t 
-                      | _           -> failwith "ill-typed, sub functions is not allowed"
+   and tcLDec isFuncDec ltenv  = 
+      function
+      | VarDec(t,s) -> addToEnv isFuncDec ltenv s t 
+      | _           -> failwith "ill-typed, sub functions is not allowed"
 
-   and tcLDecs ltenv = function
-                       | dec::decs -> tcLDecs (tcLDec ltenv dec) decs
-                       | _         -> ltenv
-
-   and tcFDec ltenv = function
-                      | VarDec(t,s) -> match t with
-                                       | ATyp(_, Some(_)) -> failwith "ill typed function argument, array with size"
-                                       | _ -> Map.add s t ltenv
-                      | _           -> failwith "ill-typed, sub functions is not allowed"
-
-   and tcFDecs ltenv = function
-                       | dec::decs -> tcFDecs (tcFDec ltenv dec) decs
-                       | _         -> ltenv
+   and tcLDecs isFuncDec ltenv decs = List.fold (tcLDec isFuncDec) ltenv decs
 
    and tcGDec gtenv = function  
-                      | VarDec(t,s)                   -> addToEnv gtenv s t
+                      | VarDec(t,s)                   -> addToEnv false gtenv s t
                       | FunDec(Some(t), f, decs, stm) -> let ltenv = Map.add "function" t Map.empty
-                                                         let ltenv = tcFDecs ltenv decs
+                                                         let ltenv = tcLDecs true ltenv decs
                                                          let gtenv = Map.add f (FTyp(List.map (fun (VarDec(t,_)) -> t) decs, Some(t))) gtenv
                                                          tcS gtenv ltenv stm
                                                          gtenv    
                       | FunDec(None   , f, decs, stm) -> failwith "type check: procedure declarations not yet supported"
 
-   and tcGDecs gtenv = function
-                       | dec::decs -> tcGDecs (tcGDec gtenv dec) decs
-                       | _         -> gtenv
+   and tcGDecs gtenv decs = List.fold (tcGDec) gtenv decs 
 
 
 /// tcP prog checks the well-typeness of a program prog
