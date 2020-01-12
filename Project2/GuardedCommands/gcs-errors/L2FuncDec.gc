@@ -1,0 +1,11 @@
+begin
+    x: int;
+    x := 1;
+    {
+        function x():int = skip, 
+        x: int;
+        x:=2;
+        print x
+    };
+    print x
+end
