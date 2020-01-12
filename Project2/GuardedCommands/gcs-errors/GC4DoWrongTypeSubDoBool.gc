@@ -1,0 +1,15 @@
+begin
+  x : int, y: int;
+  x := 1; 
+  y := 1;
+  do  x=1 -> print x; x:= x+1
+   |  x=2 -> print x; x:= x+1;
+             do y=1 -> print y; y:= y+1
+             |  y-2 -> print y; y:= y+1 
+             |  y=3 -> print y; y:= y+1 
+             od;
+   |  x=3 -> print x; x:= x+1 
+  od;
+  print x;
+  print y
+end
