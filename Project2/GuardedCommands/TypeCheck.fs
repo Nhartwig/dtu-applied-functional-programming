@@ -104,11 +104,15 @@ module TypeCheck =
 
    and tcLDecs isFuncDec ltenv decs = List.fold (tcLDec isFuncDec) ltenv decs
 
+   and unpackFunDecs decs = List.map (function
+                                      | (VarDec(t,_)) -> t
+                                      | _ -> failwith "Illegal function declaration inside function declaration") decs
+
    and tcGDec gtenv = function  
                       | VarDec(t,s)                   -> addToEnv false gtenv s t
                       | FunDec(Some(t), f, decs, stm) -> let ltenv = Map.add "function" t Map.empty
                                                          let ltenv = tcLDecs true ltenv decs
-                                                         let gtenv = Map.add f (FTyp(List.map (fun (VarDec(t,_)) -> t) decs, Some(t))) gtenv
+                                                         let gtenv = Map.add f (FTyp(unpackFunDecs decs, Some(t))) gtenv
                                                          tcS gtenv ltenv stm
                                                          gtenv    
                       | FunDec(None   , f, decs, stm) -> failwith "type check: procedure declarations not yet supported"
