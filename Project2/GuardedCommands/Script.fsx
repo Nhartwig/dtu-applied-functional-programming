@@ -7,7 +7,7 @@ It should look something like this
 
 #read "PersonalSettings.fsx"
 #load "PersonalSettings.fsx"
-
+ 
 #load "AST.fs"
 #load "Parser.fs"
 #load "Lexer.fs"
@@ -29,17 +29,14 @@ open Machine
 open VirtualMachine
 open Testing
 
-
 System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__;;
 
 // testing the test module
 
-let fail = Testing.test [0;0] ["gcs-errors/Ex0.gc"; "gcs-errors/Ex1.gc"]
-let pass = Testing.test [0;0;0;0;0;0;0] ["gcs/Ex1.gc"; "gcs/Ex2.gc";"gcs/Ex3.gc"; "gcs/Ex4.gc"; "gcs/Ex5.gc"; "gcs/Ex6.gc"; "gcs/Skip.gc"]
-
+let fail = Testing.test [(0, "gcs-errors/Ex0.gc"); (0, "gcs-errors/Ex1.gc")]
+let pass = Testing.test [(0, "gcs/Ex1.gc"); (0, "gcs/Ex2.gc"); (0, "gcs/Ex3.gc"); (0, "gcs/Ex4.gc"); (0, "gcs/Ex5.gc"); (0, "gcs/Ex6.gc"); (0, "gcs/Skip.gc")]
 
 // The Ex0.gc example:
-
 
 let ex0Tree = parseFromFile "gcs/Ex0.gc";;
 
@@ -83,7 +80,6 @@ let pts = List.map parseFromFile ["gcs/Ex1.gc"; "gcs/Ex2.gc";"gcs/Ex3.gc"; "gcs/
 
 // The parse tree for Ex3.gc
 List.item 2 pts ;;
-
 
 // Test of programs covered by the first task (Section 3.7):
 List.iter exec ["gcs/Ex1.gc"; "gcs/Ex2.gc";"gcs/Ex3.gc"; "gcs/Ex4.gc"; "gcs/Ex5.gc"; "gcs/Ex6.gc"; "gcs/Skip.gc"];;
