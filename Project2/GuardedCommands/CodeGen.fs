@@ -161,7 +161,10 @@ module CodeGeneration =
         let (labf, _, paras) = Map.find f fEnv
         let (envf, fdepthf) = List.fold (fun (env, fdepth) (VarDec(t,x)) -> (Map.add x (LocVar fdepth, t) env, fdepth+1)) (gvM, 0) paras
         let code = CS (envf, fdepthf) fEnv body
-        [Label labf] @ code @ [RET (List.length paras-1)]
+        [Label labf] @ code 
+        @ match tyOpt with
+          | Some _ -> Abnormalstop
+          | None -> [RET (List.length paras-1)]
        let functions = 
         List.choose (function
                      | FunDec (rTy, name, argTy, body) -> Some(compilefun(rTy, name, argTy, body))
