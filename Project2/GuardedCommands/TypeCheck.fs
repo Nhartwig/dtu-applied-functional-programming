@@ -110,6 +110,10 @@ module TypeCheck =
 
    and tcLDecs isFuncDec ltenv decs = List.fold (tcLDec isFuncDec) ltenv decs
 
+   and unpackFunDecs decs = List.map (function
+                                      | (VarDec(t,_)) -> t
+                                      | _ -> failwith "Illegal function declaration inside function declaration") decs
+
    and tcGDec gtenv = function  
                       | VarDec(t,s)                   -> addToEnv false gtenv s t
                       | FunDec(x, f, decs, stm) -> let t = match x with
@@ -117,7 +121,7 @@ module TypeCheck =
                                                            | None     -> (FTyp([],None))
                                                    let ltenv = Map.add "function" t Map.empty
                                                    let ltenv = tcLDecs true ltenv decs
-                                                   let gtenv = Map.add f (FTyp(List.map (fun (VarDec(t,_)) -> t) decs, x)) gtenv
+                                                   let gtenv = Map.add f (FTyp(unpackFunDecs decs, x)) gtenv
                                                    tcS gtenv ltenv stm
                                                    gtenv
 
