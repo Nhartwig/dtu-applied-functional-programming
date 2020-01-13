@@ -41,18 +41,20 @@ module TypeCheck =
                                       | (o, BTyp, BTyp) when List.exists (fun x ->  x=o) ["&&"; "||"; "="; "<>"]     -> BTyp 
                                       | _                      -> failwith("illegal/illtyped dyadic expression: " + f)
 
-   and tcNaryFunction gtenv ltenv f es = match Map.tryFind f gtenv with
-                                         | None     -> failwith "Illegal call to undefined function/procedure"
-                                         | Some(f') -> match f' with
-                                                       | FTyp(es', Some(t)) -> if List.length es = List.length es' then () else failwith "illtyped function call with too few arguments"
-                                                                               List.map (tcE gtenv ltenv) es
-                                                                               |> List.iter2 (fun e1 e2 -> if ftypcomp e1 e2 then () else failwith "illtyped function argument of wrong type") es'
-                                                                               t
-                                                       | _                  -> failwith "Illegal call of procedure as a function"
+   and tcNaryFunction gtenv ltenv f es = tcFuncProc gtenv ltenv true f es
  
-   and tcNaryProcedure gtenv ltenv f es = failwith "type check: procedures not supported yet"
-      
+   and tcNaryProcedure gtenv ltenv f es = tcFuncProc gtenv ltenv false f es |> ignore
 
+   and tcFuncProc gtenv ltenv isFunc f es= match Map.tryFind f gtenv with
+                                           | None     -> failwith (sprintf "Illegal call to unknown procedure/function %s" f)
+                                           | Some(f') -> match f' with 
+                                                         | FTyp(es', x) -> if List.length es = List.length es' then () else failwith "Illtyped function/procedure call with too few arguments"
+                                                                           List.map (tcE gtenv ltenv) es
+                                                                           |> List.iter2 (fun e1 e2 -> if ftypcomp e1 e2 then () else failwith "Illtyped function/procedure argument of wrong type") es'
+                                                                           match x with
+                                                                           | Some(t) -> if not isFunc then failwith "Illegal call of function as procedure" else t
+                                                                           | None -> if isFunc then failwith "Illegal call of procedure as function" else BTyp
+                                                         | _ -> failwith (sprintf "Illegal call of %s as procedure/function" f)
 /// tcA gtenv ltenv e gives the type for access acc on the basis of type environments gtenv and ltenv
 /// for global and local variables 
    and tcA gtenv ltenv = 
@@ -82,9 +84,13 @@ module TypeCheck =
                                                 List.iter (tcS gtenv ltenv) stms
                          | Alt (GC(gcs)) -> List.iter (tcGC gtenv ltenv) gcs
                          | Do (GC(gcs))  -> List.iter (tcGC gtenv ltenv) gcs
-                         | Return (Some(e)) -> match Map.tryFind "function" ltenv with
-                                               | Some(t) -> if t = (tcE gtenv ltenv e) then () else failwith "illegal return type"
-                                               | None -> failwith "illegal call of return outside function"
+                         | Return x         -> let e = match x with
+                                                       | Some(x') -> tcE gtenv ltenv x'
+                                                       | None -> (FTyp([],None))
+                                               match Map.tryFind "function" ltenv with
+                                               | Some(t) -> if t = e then () else failwith "illegal return type"
+                                               | None    -> failwith "illegal call of return outside function"
+                         | Call (f, es)   -> tcNaryProcedure gtenv ltenv f es
                          | _              -> failwith "tcS: this statement is not supported yet"
 
    and tcGC gtenv ltenv (exp, stms) = match tcE gtenv ltenv exp with
@@ -106,12 +112,14 @@ module TypeCheck =
 
    and tcGDec gtenv = function  
                       | VarDec(t,s)                   -> addToEnv false gtenv s t
-                      | FunDec(Some(t), f, decs, stm) -> let ltenv = Map.add "function" t Map.empty
-                                                         let ltenv = tcLDecs true ltenv decs
-                                                         let gtenv = Map.add f (FTyp(List.map (fun (VarDec(t,_)) -> t) decs, Some(t))) gtenv
-                                                         tcS gtenv ltenv stm
-                                                         gtenv    
-                      | FunDec(None   , f, decs, stm) -> failwith "type check: procedure declarations not yet supported"
+                      | FunDec(x, f, decs, stm) -> let t = match x with
+                                                           | Some(x') -> x'
+                                                           | None     -> (FTyp([],None))
+                                                   let ltenv = Map.add "function" t Map.empty
+                                                   let ltenv = tcLDecs true ltenv decs
+                                                   let gtenv = Map.add f (FTyp(List.map (fun (VarDec(t,_)) -> t) decs, x)) gtenv
+                                                   tcS gtenv ltenv stm
+                                                   gtenv
 
    and tcGDecs gtenv decs = List.fold (tcGDec) gtenv decs 
 
