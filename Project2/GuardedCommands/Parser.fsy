@@ -11,7 +11,7 @@ open GuardedCommands.Frontend.AST
 %token IF FI DO OD BEGIN END 
 %token COMMA COLON SEMI BAR TO
 %token NEG PLUS MINUS TIMES AND CON EQ LE GE LT GT NEQ
-%token PRINT ASG SKIP ABORT FUNCTION RETURN
+%token PRINT ASG SKIP ABORT FUNCTION RETURN PROCEDURE
 %token EOF
 %token HIGH
 
@@ -57,6 +57,7 @@ Typ:
 
 Dec: 
     FUNCTION NAME LP DecL RP COLON Typ EQ Stm     { FunDec(Some($7), $2, $4, $9 )} 
+  | PROCEDURE NAME LP DecL RP EQ Stm              { FunDec(None    , $2, $4, $7 )}
   | NAME COLON Typ                                { VarDec($3,$1) }
 
 DecL: 
@@ -85,6 +86,7 @@ Stm:
   | IF GuardedCommand FI              { Alt $2 }
   | DO GuardedCommand OD              { Do $2  }
   | RETURN ExpOpt                     { Return $2 }
+  | NAME LP ExpL RP                   { Call($1, $3) }
 
 StmL:
                                       { [] } 
