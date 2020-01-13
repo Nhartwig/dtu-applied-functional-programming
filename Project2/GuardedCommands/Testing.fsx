@@ -56,20 +56,26 @@ module Testing =
         | 0 -> (n)::(testparseFromFile gcFile)@(testtcP gcFile)@(testCP gcFile)
         | _ -> printfn "Invalid test id entered"; (n)::[("Invalid test id entered")]
     
+    
     let test zTests = 
         let rec testList ls =
             match ls with 
             | [] -> []
             | (i,f)::ls -> (test' f i) :: (testList ls)
-        testList zTests;
+        testList zTests;    
 
-
+    let hideExnMsg tr = 
+        let mapping (list: 'T list) = 
+            let indices = [0;1;3;5]
+            let res = [for i in indices do yield list.[i]]
+            res
+        List.map (mapping) (tr) 
+                    
 
 
 
 
     
-
 
 
 

@@ -1,0 +1,5 @@
+begin
+  x : int;
+  x := 10;
+  do ! x = a -> print x; x := x - 1 od ;
+end

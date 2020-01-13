@@ -33,8 +33,29 @@ System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__;;
 
 // testing the test module
 
-let fail = Testing.test [(0, "gcs-errors/Ex0.gc"); (0, "gcs-errors/Ex1.gc")]
-let pass = Testing.test [(0, "gcs/Ex1.gc"); (0, "gcs/Ex2.gc"); (0, "gcs/Ex3.gc"); (0, "gcs/Ex4.gc"); (0, "gcs/Ex5.gc"); (0, "gcs/Ex6.gc"); (0, "gcs/Skip.gc")]
+let fail = Testing.test [   (0, "gcs-errors/Ex0.gc"); 
+                            (0, "gcs-errors/Ex1.gc");   
+                            (0, "gcs-errors/Ex1.gc"); 
+                            (0, "gcs-errors/do0.gc"); 
+                            (0, "gcs-errors/do1.gc");
+                            (0, "gcs-errors/do2.gc");   
+                            (0, "gcs-errors/while0.gc"); 
+                            (0, "gcs-errors/while1.gc"); 
+                            (0, "gcs-errors/while2.gc") ]
+fail |> Testing.hideExnMsg               
+
+let pass = Testing.test [   (0, "gcs/Ex0.gc"); 
+                            (0, "gcs/Ex1.gc");   
+                            (0, "gcs/Ex1.gc"); 
+                            (0, "gcs/do0.gc"); 
+                            (0, "gcs/do1.gc");
+                            (0, "gcs/do2.gc");   
+                            (0, "gcs/while0.gc"); 
+                            (0, "gcs/while1.gc"); 
+                            (0, "gcs/while2.gc")  ]
+
+                           
+//let pass1 = Testing.test [(0, "gcs/Ex1.gc"); (0, "gcs/Ex2.gc"); (0, "gcs/Ex3.gc"); (0, "gcs/Ex4.gc"); (0, "gcs/Ex5.gc"); (0, "gcs/Ex6.gc"); (0, "gcs/Skip.gc")]
 
 // The Ex0.gc example:
 
