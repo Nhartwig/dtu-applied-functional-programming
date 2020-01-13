@@ -88,6 +88,9 @@ List.iter exec ["gcs/Ex7.gc"; "gcs/fact.gc"; "gcs/factRec.gc"; "gcs/factCBV.gc"]
 // Test of programs covered by the fourth task (Section 5.4):
 List.iter exec ["gcs/A0.gc"; "gcs/A1.gc"; "gcs/A2.gc"; "gcs/A3.gc"];;
 
+// Test of programs covered by the actual fifth task (Section 6.1)
+List.iter exec ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/Masg4.gc"];;
+
 // Test of programs covered by the fifth task (Section 6.1):
 List.iter exec ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"];;
 (*
