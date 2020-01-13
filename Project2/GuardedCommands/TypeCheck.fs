@@ -121,7 +121,7 @@ module TypeCheck =
                                                            | None     -> (FTyp([],None))
                                                    let ltenv = Map.add "function" t Map.empty
                                                    let ltenv = tcLDecs true ltenv decs
-                                                   let gtenv = Map.add f (FTyp(unpackFunDecs decs, Some(t))) gtenv
+                                                   let gtenv = Map.add f (FTyp(unpackFunDecs decs, x)) gtenv
                                                    tcS gtenv ltenv stm
                                                    gtenv
 
