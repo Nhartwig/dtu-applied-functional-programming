@@ -116,7 +116,11 @@ module CodeGeneration =
 
        | Return (Some e) -> CE vEnv fEnv e @ [RET (snd vEnv)]
 
-       | Return None     -> failwith "CS: procedures not supported"
+       | Return None     -> [RET (snd vEnv - 1)]
+
+       | Call(f, es) -> let (label, _, _) = Map.find f fEnv
+                        List.collect (CE vEnv fEnv) es
+                        @ [CALL (List.length es, label); INCSP -1]
 
        | _                -> failwith "CS: this statement is not supported yet"
 
