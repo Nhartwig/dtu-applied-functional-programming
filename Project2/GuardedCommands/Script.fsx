@@ -30,7 +30,7 @@ open VirtualMachine
 open Testing
 
 System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__;;
-
+(*
 // The Ex0.gc example:
 
 let ex0Tree = parseFromFile "gcs/Ex0.gc";;
@@ -125,11 +125,11 @@ Testing.test [  (0, "gcs-errors/A1ArrayWithoutSize.gc");
                 (0, "gcs-errors/A7BoolAsArrayIndex.gc");
                 (0, "gcs-errors/A8IndexOfNonArray.gc");
                 ]
-|> Testing.hideExnMsg |> Testing.failTypechecker "Array";;
+|> Testing.hideExnMsg |> Testing.failTypechecker "Array";;*)
 
 // Test of programs covered by the actual fifth task (Section 6.1)
-List.iter exec ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/Masg4.gc";
-                 "gcs/MAIntTypeStringTypeAssignments.gc";   
+List.iter exec ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/MAsg4.gc";
+                 "gcs/MAIntTypeIntTypeAssignments.gc";   
                     "gcs/MACorrectTypeToMultiple.gc"; 
                     "gcs/MACorrectSizeEitherSide1.gc"; 
                     "gcs/MACorrectSizeEitherSide2.gc";
@@ -139,9 +139,7 @@ List.iter exec ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/Masg4.gc";
 Testing.test [  (0, "gcs-errors/MAWrongTypeToOne.gc");   
                 (0, "gcs-errors/MAWrongTypeToMultiple.gc"); 
                 (0, "gcs-errors/MAWrongSizeEitherSide1.gc"); 
-                (0, "gcs-errors/MAWrongSizeEitherSide2.gc");
-                (0, "gcs-errors/MAAssignmentToEmpty.gc");
-                (0, "gcs-errors/MAEmptyToAssignment.gc") ]
+                (0, "gcs-errors/MAWrongSizeEitherSide2.gc"); ]
                 
 |> Testing.hideExnMsg  |> Testing.failTypechecker "Multiple Assignments"        
 

@@ -1,8 +1,0 @@
-begin 
-    x : int, y : int ;
-    x , y := 30, ;
-    print x;
-    print y
-end
-
-

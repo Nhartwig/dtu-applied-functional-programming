@@ -1,6 +1,6 @@
 begin 
     x : int, y : int ;
-    x , y := "apples", "oranges" ;
+    x , y := true, false ;
     print x;
     print y
 end

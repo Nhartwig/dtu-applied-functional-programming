@@ -1,6 +1,6 @@
 begin 
-    x : string, y : string ;
-    x , y := "apples", "oranges" ;
+    x : bool, y : int ;
+    x , y := true, 42  ;
     print x;
     print y
 end
