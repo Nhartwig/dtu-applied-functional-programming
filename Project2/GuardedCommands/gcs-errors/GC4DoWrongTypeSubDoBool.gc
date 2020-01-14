@@ -7,7 +7,7 @@ begin
              do y=1 -> print y; y:= y+1
              |  y-2 -> print y; y:= y+1 
              |  y=3 -> print y; y:= y+1 
-             od;
+             od
    |  x=3 -> print x; x:= x+1 
   od;
   print x;
