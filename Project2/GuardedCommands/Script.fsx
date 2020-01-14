@@ -31,32 +31,6 @@ open Testing
 
 System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__;;
 
-// testing the test module
-
-let fail = Testing.test [   (0, "gcs-errors/Ex0.gc"); 
-                            (0, "gcs-errors/Ex1.gc");   
-                            (0, "gcs-errors/Ex1.gc"); 
-                            (0, "gcs-errors/do0.gc"); 
-                            (0, "gcs-errors/do1.gc");
-                            (0, "gcs-errors/do2.gc");   
-                            (0, "gcs-errors/while0.gc"); 
-                            (0, "gcs-errors/while1.gc"); 
-                            (0, "gcs-errors/while2.gc") ]
-fail |> Testing.hideExnMsg               
-
-let pass = Testing.test [   (0, "gcs/Ex0.gc"); 
-                            (0, "gcs/Ex1.gc");   
-                            (0, "gcs/Ex1.gc"); 
-                            (0, "gcs/do0.gc"); 
-                            (0, "gcs/do1.gc");
-                            (0, "gcs/do2.gc");   
-                            (0, "gcs/while0.gc"); 
-                            (0, "gcs/while1.gc"); 
-                            (0, "gcs/while2.gc")  ]
-
-                           
-//let pass1 = Testing.test [(0, "gcs/Ex1.gc"); (0, "gcs/Ex2.gc"); (0, "gcs/Ex3.gc"); (0, "gcs/Ex4.gc"); (0, "gcs/Ex5.gc"); (0, "gcs/Ex6.gc"); (0, "gcs/Skip.gc")]
-
 // The Ex0.gc example:
 
 let ex0Tree = parseFromFile "gcs/Ex0.gc";;
@@ -93,17 +67,34 @@ let _ = exec "gcs/Ex1.gc";;
 
 let _ = exec "gcs/Ex2.gc";;
 
-// Test of programs covered by the fifth task using optimized compilation (Section 8.2):
-List.iter execOpt ["gcs/Ex1.gc"; "gcs/Ex2.gc"];;
+// testing the test module
 
-// All programs relating to the basic version can be parsed:
-let pts = List.map parseFromFile ["gcs/Ex1.gc"; "gcs/Ex2.gc";"gcs/Ex3.gc"; "gcs/Ex4.gc"; "gcs/Ex5.gc"; "gcs/Ex6.gc"; "gcs/Skip.gc"];;
+let fail = Testing.test [   (0, "gcs-errors/Ex0.gc"); 
+                            (0, "gcs-errors/Ex1.gc");   
+                            (0, "gcs-errors/Ex1.gc"); 
+                            (0, "gcs-errors/do0.gc"); 
+                            (0, "gcs-errors/do1.gc");
+                            (0, "gcs-errors/do2.gc");   
+                            (0, "gcs-errors/while0.gc"); 
+                            (0, "gcs-errors/while1.gc"); 
+                            (0, "gcs-errors/while2.gc") ]
+fail |> Testing.hideExnMsg               
 
-// The parse tree for Ex3.gc
-List.item 2 pts ;;
+let pass = Testing.test [   (0, "gcs/Ex0.gc"); 
+                            (0, "gcs/Ex1.gc");   
+                            (0, "gcs/Ex1.gc");  ]
 
 // Test of programs covered by the first task (Section 3.7):
 List.iter exec ["gcs/Ex1.gc"; "gcs/Ex2.gc";"gcs/Ex3.gc"; "gcs/Ex4.gc"; "gcs/Ex5.gc"; "gcs/Ex6.gc"; "gcs/Skip.gc"];;
+
+// Tests that should fail in typechecker
+Testing.test [  (0, "gcs-errors/GC1IfWrongTypeBool.gc");
+                (0, "gcs-errors/GC2DowrongTypeBool.gc");
+                (0, "gcs-errors/GC3IfWrongTypeSubIfBool.gc");
+                (0, "gcs-errors/GC4DoWrongTypeSubDoBool.gc");
+                (0, "gcs-errors/GC5WrongTypeInsideDo.gc")
+                ]
+|> Testing.hideExnMsg |> Testing.failTypechecker "GC";;
 
 // Test of programs covered by the second task (Section 4.3):
 List.iter exec ["gcs/Ex7.gc"; "gcs/fact.gc"; "gcs/factRec.gc"; "gcs/factCBV.gc"];;
@@ -119,6 +110,9 @@ List.iter exec ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"];;
 (*
 // Test of programs covered by the fifth task (Section 7.4):
 List.iter exec ["par1.gc"; "factImpPTyp.gc"; "QuickSortV2.gc"; "par2.gc"];;
+
+// Test of programs covered by the fifth task using optimized compilation (Section 8.2):
+List.iter execOpt ["gcs/Ex1.gc"; "gcs/Ex2.gc"];;
 
 // Test of programs covered by the fifth task using optimized compilation (Section 8.2):
 List.iter execOpt ["par1.gc"; "factImpPTyp.gc"; "QuickSortV2.gc"; "par2.gc"];;
