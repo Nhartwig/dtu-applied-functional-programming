@@ -114,6 +114,23 @@ List.iter exec ["gcs/A0.gc"; "gcs/A1.gc"; "gcs/A2.gc"; "gcs/A3.gc"];;
 // Test of programs covered by the actual fifth task (Section 6.1)
 List.iter exec ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/Masg4.gc"];;
 
+Testing.test [  (0, "gcs/MAIntTypeStringTypeAssignments.gc");   
+                (0, "gcs/MACorrectTypeToMultiple.gc"); 
+                (0, "gcs/MACorrectSizeEitherSide1.gc"); 
+                (0, "gcs/MACorrectSizeEitherSide2.gc");
+                (0, "gcs/MAAssignmentToTwoInts#1.gc"); 
+                (0, "gcs/MAAssignmentToTwoInts#2.gc") ]
+
+Testing.test [  (0, "gcs-errors/MAWrongTypeToOne.gc");   
+                (0, "gcs-errors/MAWrongTypeToMultiple.gc"); 
+                (0, "gcs-errors/MAWrongSizeEitherSide1.gc"); 
+                (0, "gcs-errors/MAWrongSizeEitherSide2.gc");
+                (0, "gcs-errors/MAAssignmentToEmpty.gc");
+                (0, "gcs-errors/MAEmptyToAssignment.gc") ]
+                
+|> Testing.hideExnMsg               
+
+
 // Test of programs covered by the fifth task (Section 6.1):
 List.iter exec ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"];;
 (*
