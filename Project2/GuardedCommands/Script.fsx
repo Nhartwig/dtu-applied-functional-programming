@@ -128,7 +128,21 @@ Testing.test [  (0, "gcs-errors/A1ArrayWithoutSize.gc");
 |> Testing.hideExnMsg |> Testing.failTypechecker "Array";;
 
 // Test of programs covered by the actual fifth task (Section 6.1)
-List.iter exec ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/Masg4.gc"];;
+List.iter exec ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/MAsg4.gc";
+                 "gcs/MAIntTypeIntTypeAssignments.gc";   
+                    "gcs/MACorrectTypeToMultiple.gc"; 
+                    "gcs/MACorrectSizeEitherSide1.gc"; 
+                    "gcs/MACorrectSizeEitherSide2.gc";
+                    "gcs/MAAssignmentToTwoInts#1.gc"; 
+                    "gcs/MAAssignmentToTwoInts#2.gc" ]
+
+Testing.test [  (0, "gcs-errors/MAWrongTypeToOne.gc");   
+                (0, "gcs-errors/MAWrongTypeToMultiple.gc"); 
+                (0, "gcs-errors/MAWrongSizeEitherSide1.gc"); 
+                (0, "gcs-errors/MAWrongSizeEitherSide2.gc"); ]
+                
+|> Testing.hideExnMsg  |> Testing.failTypechecker "Multiple Assignments"        
+
 
 // Test of programs covered by the fifth task (Section 6.1):
 List.iter exec ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"];;

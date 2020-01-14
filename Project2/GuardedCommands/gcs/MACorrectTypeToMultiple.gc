@@ -1,0 +1,8 @@
+begin 
+    x : bool, y : int ;
+    x , y := true, 42  ;
+    print x;
+    print y
+end
+
+
