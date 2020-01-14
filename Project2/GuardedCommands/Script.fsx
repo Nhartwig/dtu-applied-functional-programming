@@ -128,14 +128,13 @@ Testing.test [  (0, "gcs-errors/A1ArrayWithoutSize.gc");
 |> Testing.hideExnMsg |> Testing.failTypechecker "Array";;
 
 // Test of programs covered by the actual fifth task (Section 6.1)
-List.iter exec ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/Masg4.gc"];;
-
-Testing.test [  (0, "gcs/MAIntTypeStringTypeAssignments.gc");   
-                (0, "gcs/MACorrectTypeToMultiple.gc"); 
-                (0, "gcs/MACorrectSizeEitherSide1.gc"); 
-                (0, "gcs/MACorrectSizeEitherSide2.gc");
-                (0, "gcs/MAAssignmentToTwoInts#1.gc"); 
-                (0, "gcs/MAAssignmentToTwoInts#2.gc") ]
+List.iter exec ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/Masg4.gc";
+                 "gcs/MAIntTypeStringTypeAssignments.gc";   
+                    "gcs/MACorrectTypeToMultiple.gc"; 
+                    "gcs/MACorrectSizeEitherSide1.gc"; 
+                    "gcs/MACorrectSizeEitherSide2.gc";
+                    "gcs/MAAssignmentToTwoInts#1.gc"; 
+                    "gcs/MAAssignmentToTwoInts#2.gc" ]
 
 Testing.test [  (0, "gcs-errors/MAWrongTypeToOne.gc");   
                 (0, "gcs-errors/MAWrongTypeToMultiple.gc"); 
@@ -144,7 +143,7 @@ Testing.test [  (0, "gcs-errors/MAWrongTypeToOne.gc");
                 (0, "gcs-errors/MAAssignmentToEmpty.gc");
                 (0, "gcs-errors/MAEmptyToAssignment.gc") ]
                 
-|> Testing.hideExnMsg               
+|> Testing.hideExnMsg  |> Testing.failTypechecker "Multiple Assignments"        
 
 
 // Test of programs covered by the fifth task (Section 6.1):
