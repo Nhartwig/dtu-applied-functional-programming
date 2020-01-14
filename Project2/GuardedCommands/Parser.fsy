@@ -54,7 +54,7 @@ BasicTyp:
 
 Typ:
   | BasicTyp                          { $1 }
-  | CARAT BasicTyp                    { PTyp($2) }
+  | CARAT Typ                         { PTyp($2) }
   | BasicTyp LSP INT RSP              { ATyp($1, Some($3)) }
   | BasicTyp LSP RSP                  { ATyp($1, None) }
 
@@ -72,7 +72,7 @@ DecList:
    | Dec COMMA DecList                { $1 :: $3 }
 
 Access:
-  | Access CARAT                      { ADeref (Access $1) }
+  | Exp CARAT                         { ADeref $1 }
   | Access LSP Exp RSP                { AIndex( $1, $3) }
   | NAME                              { AVar $1 }
 
@@ -121,7 +121,7 @@ ExpOpt:
   | Exp                               { Some($1) }
 
 Exp:
-    Access                            { Access $1 }
+  | Access                            { Access $1 }
   | INT                               { N $1 }
   | BOOL                              { B $1 }       
   | LP Exp RP                         { $2 } 
@@ -139,5 +139,5 @@ Exp:
   | Exp LT Exp                        { Apply("<", [$1; $3])}
   | Exp NEQ Exp                       { Apply("<>", [$1; $3])}
   | NAME LP ExpL RP                   { Apply($1, $3) }
-  | AMBS Access                       { Addr $2 }
+  | AMBS NAME                         { Addr Access($2) }
 
