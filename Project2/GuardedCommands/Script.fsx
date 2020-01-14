@@ -146,10 +146,24 @@ Testing.test [  (0, "gcs-errors/MAWrongTypeToOne.gc");
 
 // Test of programs covered by the fifth task (Section 6.1):
 List.iter exec ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"];;
-(*
-// Test of programs covered by the fifth task (Section 7.4):
-List.iter exec ["par1.gc"; "factImpPTyp.gc"; "QuickSortV2.gc"; "par2.gc"];;
 
+// Test of programs covered by the fifth task (Section 7.4):
+// Pointers not implemented yet
+// List.iter exec ["gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/par2.gc"];;
+
+
+// Tests that should pass in typechecker
+Testing.test [  (0, "gcs/P1IntProcedureType.gc");
+                ]
+|> Testing.hideExnMsg //|> Testing.failTC "Procedure"
+
+Testing.test [  (0, "gcs-errors/P1WrongProcedureType.gc");
+                (0, "gcs-errors/P2WrongProcedureType.gc");
+
+                ]
+|> Testing.hideExnMsg |> Testing.failTC "Procedure"
+
+(*
 // Test of programs covered by the fifth task using optimized compilation (Section 8.2):
 List.iter execOpt ["gcs/Ex1.gc"; "gcs/Ex2.gc"];;
 
