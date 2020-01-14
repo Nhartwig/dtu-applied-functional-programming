@@ -94,7 +94,7 @@ Testing.test [  (0, "gcs-errors/GC1IfWrongTypeBool.gc");
                 (0, "gcs-errors/GC4DoWrongTypeSubDoBool.gc");
                 (0, "gcs-errors/GC5WrongTypeInsideDo.gc")
                 ]
-|> Testing.hideExnMsg |> Testing.failTypechecker "GC";;
+|> Testing.hideExnMsg |> Testing.failTC "GC";;
 
 // Test of programs covered by the second task (Section 4.3):
 List.iter exec ["gcs/Ex7.gc"; "gcs/fact.gc"; "gcs/factRec.gc"; "gcs/factCBV.gc"];;
@@ -110,7 +110,7 @@ Testing.test [  (0, "gcs-errors/F1WrongReturnType.gc");
                 (0, "gcs-errors/LD1TypeOverride.gc");
                 (0, "gcs-errors/LD2FuncDec.gc")
                 ]
-|> Testing.hideExnMsg |> Testing.failTypechecker "Func and LD";;
+|> Testing.hideExnMsg |> Testing.failTC "Func and LD";;
 
 // Test of programs covered by the fourth task (Section 5.4):
 List.iter exec ["gcs/A0.gc"; "gcs/A1.gc"; "gcs/A2.gc"; "gcs/A3.gc"];;
@@ -125,10 +125,24 @@ Testing.test [  (0, "gcs-errors/A1ArrayWithoutSize.gc");
                 (0, "gcs-errors/A7BoolAsArrayIndex.gc");
                 (0, "gcs-errors/A8IndexOfNonArray.gc");
                 ]
-|> Testing.hideExnMsg |> Testing.failTypechecker "Array";;
+|> Testing.hideExnMsg |> Testing.failTC "Array";;
 
 // Test of programs covered by the actual fifth task (Section 6.1)
-List.iter exec ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/Masg4.gc"];;
+List.iter exec ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/MAsg4.gc";
+                 "gcs/MAIntTypeIntTypeAssignments.gc";   
+                    "gcs/MACorrectTypeToMultiple.gc"; 
+                    "gcs/MACorrectSizeEitherSide1.gc"; 
+                    "gcs/MACorrectSizeEitherSide2.gc";
+                    "gcs/MAAssignmentToTwoInts#1.gc"; 
+                    "gcs/MAAssignmentToTwoInts#2.gc" ]
+
+Testing.test [  (0, "gcs-errors/MAWrongTypeToOne.gc");   
+                (0, "gcs-errors/MAWrongTypeToMultiple.gc"); 
+                (0, "gcs-errors/MAWrongSizeEitherSide1.gc"); 
+                (0, "gcs-errors/MAWrongSizeEitherSide2.gc"); ]
+                
+|> Testing.hideExnMsg  |> Testing.failTC "Multiple Assignments"        
+
 
 // Test of programs covered by the fifth task (Section 6.1):
 List.iter exec ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"];;
