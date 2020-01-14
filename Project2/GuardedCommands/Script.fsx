@@ -159,7 +159,8 @@ Testing.test [  (0, "gcs/P1IntProcedureType.gc");
 
 Testing.test [  (0, "gcs-errors/P1WrongProcedureType.gc");
                 (0, "gcs-errors/P2WrongProcedureType.gc");
-
+                (0, "gcs-errors/P3NoArgsToProcedureCall.gc");
+                (0, "gcs-errors/P4TooManyArgsToProcedureCall.gc");
                 ]
 |> Testing.hideExnMsg |> Testing.failTC "Procedure"
 
