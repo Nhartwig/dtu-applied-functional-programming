@@ -1,0 +1,8 @@
+begin 
+    x : int, y : string ;
+    x , y := 30, "oranges" ;
+    print x;
+    print y
+end
+
+
