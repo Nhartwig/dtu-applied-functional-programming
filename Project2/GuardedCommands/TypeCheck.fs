@@ -10,7 +10,7 @@ module TypeCheck =
    let ftypcomp t1 t2 =
       let basic t =
          match t with
-         | ATyp(atyp,_) -> atyp
+         | ATyp(atyp,_) -> ATyp(atyp, None)
          | x -> x
       basic t1 = basic t2
 /// tcE gtenv ltenv e gives the type for expression e on the basis of type environments gtenv and ltenv
@@ -75,9 +75,14 @@ module TypeCheck =
 /// for global and local variables and the possible type of return expressions 
    and tcS gtenv ltenv = function                           
                          | PrintLn e -> ignore(tcE gtenv ltenv e)
-                         | Ass(acc,e) -> if tcA gtenv ltenv acc = tcE gtenv ltenv e 
+                         | Ass(acc,es)-> if (List.length acc <> List.length es) then failwith "illtyped assignment, size unequal"
+                                         let es = List.map (tcE gtenv ltenv) es
+                                         let acc = List.map (tcA gtenv ltenv) acc
+                                         if List.zip es acc
+                                            |> List.map (fun (e,a) -> e=a)
+                                            |> List.forall (id)
                                          then ()
-                                         else failwith "illtyped assignment"                                
+                                         else failwith "illtyped assignment, miss matching types"                                
 
                          | Block([],stms) -> List.iter (tcS gtenv ltenv) stms
                          | Block(decs, stms) -> let ltenv = tcLDecs false ltenv decs
@@ -110,6 +115,10 @@ module TypeCheck =
 
    and tcLDecs isFuncDec ltenv decs = List.fold (tcLDec isFuncDec) ltenv decs
 
+   and unpackFunDecs decs = List.map (function
+                                      | (VarDec(t,_)) -> t
+                                      | _ -> failwith "Illegal function declaration inside function declaration") decs
+
    and tcGDec gtenv = function  
                       | VarDec(t,s)                   -> addToEnv false gtenv s t
                       | FunDec(x, f, decs, stm) -> let t = match x with
@@ -117,7 +126,7 @@ module TypeCheck =
                                                            | None     -> (FTyp([],None))
                                                    let ltenv = Map.add "function" t Map.empty
                                                    let ltenv = tcLDecs true ltenv decs
-                                                   let gtenv = Map.add f (FTyp(List.map (fun (VarDec(t,_)) -> t) decs, x)) gtenv
+                                                   let gtenv = Map.add f (FTyp(unpackFunDecs decs, x)) gtenv
                                                    tcS gtenv ltenv stm
                                                    gtenv
 

@@ -94,7 +94,11 @@ module CodeGeneration =
    let rec CS vEnv fEnv = function
        | PrintLn e        -> CE vEnv fEnv e @ [PRINTI; INCSP -1] 
 
-       | Ass(acc,e)       -> CA vEnv fEnv acc @ CE vEnv fEnv e @ [STI; INCSP -1]
+       | Ass(accs,es)     -> let len = List.length accs
+                             List.collect (CE vEnv fEnv) es
+                             @ List.collect (CA vEnv fEnv) accs
+                             @ List.collect (fun i -> [GETSP; CSTI (len-i-1); SUB; LDI; GETSP; CSTI (len+len-i); SUB; LDI; STI; INCSP -1]) [0 .. len-1]
+                             @ [INCSP (-len*2)]
 
        | Block([],stms) ->   CSs vEnv fEnv stms
        
@@ -161,7 +165,10 @@ module CodeGeneration =
         let (labf, _, paras) = Map.find f fEnv
         let (envf, fdepthf) = List.fold (fun (env, fdepth) (VarDec(t,x)) -> (Map.add x (LocVar fdepth, t) env, fdepth+1)) (gvM, 0) paras
         let code = CS (envf, fdepthf) fEnv body
-        [Label labf] @ code @ [RET (List.length paras-1)]
+        [Label labf] @ code 
+        @ match tyOpt with
+          | Some _ -> Abnormalstop
+          | None -> [RET (List.length paras-1)]
        let functions = 
         List.choose (function
                      | FunDec (rTy, name, argTy, body) -> Some(compilefun(rTy, name, argTy, body))
