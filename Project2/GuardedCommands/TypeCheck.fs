@@ -18,7 +18,9 @@ module TypeCheck =
    let rec tcE gtenv ltenv = function                            
          | N _              -> ITyp   
          | B _              -> BTyp   
-         | Access acc       -> tcA gtenv ltenv acc     
+         | Access acc       -> tcA gtenv ltenv acc   
+
+         | Addr e           -> PTyp(tcA gtenv ltenv e)  
                    
          | Apply(f,[e]) when List.exists (fun x ->  x=f) ["-"; "!"]  
                             -> tcMonadic gtenv ltenv f e        
@@ -68,7 +70,9 @@ module TypeCheck =
                              | ATyp (atyp,x) -> if (tcE gtenv ltenv e) = ITyp then atyp else failwith "illtyped array index"
                              | _             -> failwith "Illegal indexing of non array"
                              
-         | ADeref e       -> failwith "tcA: pointer dereferencing not supported yes"
+         | ADeref e       -> match tcE gtenv ltenv e with
+                             | PTyp(typ) -> typ
+                             | _         -> failwith "Illegal deref of non pointer"
  
 
 /// tcS gtenv ltenv retOpt s checks the well-typeness of a statement s on the basis of type environments gtenv and ltenv
