@@ -23,7 +23,7 @@ module CodeGeneration =
    type ParamDecs = (Typ * string) list
    type funEnv = Map<string, label * Typ option * ParamDecs>
 
-   // Abnormal stop commands
+   // Abnormal stop label
    let Abnormalstop = ref ""
 
 /// CE vEnv fEnv e gives the code for an expression e on the basis of a variable and a function environment
