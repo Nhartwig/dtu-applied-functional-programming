@@ -1,3 +1,5 @@
 .ionide
 /packages
 GuardedCommands.v11.suo
+/MicroC
+HandoutFsCheck.fsx
