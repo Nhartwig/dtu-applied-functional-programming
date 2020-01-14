@@ -37,7 +37,7 @@ let ex0Tree = parseFromFile "gcs/Ex0.gc";;
 
 let _ = tcP ex0Tree;;
 
-let ex0Code = CP ex0Tree;; 
+let ex0Code = CP true ex0Tree;; 
 
 let _ = go ex0Tree;;
 
@@ -53,7 +53,7 @@ let ex1Tree = parseFromFile "gcs/Ex1.gc";;
 let _ = tcP ex1Tree;;
 
 // obtain symbolic code:
-let ex1Code = CP ex1Tree;; 
+let ex1Code = CP true ex1Tree;; 
 
 // -- is executed with trace as follows:
 let stack = goTrace ex1Tree;;

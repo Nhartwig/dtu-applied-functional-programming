@@ -26,6 +26,9 @@ module CodeGeneration =
    // Abnormal stop label
    let Abnormalstop = ref ""
 
+   // Whatever out of bounds should be dynamically checked for arrays
+   let checkOUB = ref true
+
 /// CE vEnv fEnv e gives the code for an expression e on the basis of a variable and a function environment
    let rec CE vEnv fEnv = 
        function
@@ -72,11 +75,14 @@ module CodeGeneration =
    and CA vEnv fEnv = function | AVar x         -> match Map.find x (fst vEnv) with
                                                    | (GloVar addr,_) -> [CSTI addr]
                                                    | (LocVar addr,_) -> [GETBP; CSTI addr; ADD]
-                               | AIndex(acc, e) -> CA vEnv fEnv acc @ 
-                                                   [DUP; DUP; LDI; SUB] @ 
-                                                   CE vEnv fEnv e @ [DUP; CSTI 0; LT; IFZERO !Abnormalstop]
-                                                   @ [SWAP; GETSP; CSTI 1; SUB; LDI; CSTI 1; ADD; LT; IFZERO !Abnormalstop]
-                                                   @ [SWAP; LDI; SWAP; ADD]
+                               | AIndex(acc, e) -> if !checkOUB then
+                                                     CA vEnv fEnv acc @ 
+                                                     [DUP; DUP; LDI; SUB] @ 
+                                                     CE vEnv fEnv e @ [DUP; CSTI 0; LT;  IFNZRO !Abnormalstop]
+                                                     @ [SWAP; GETSP; CSTI 1; SUB; LDI; CSTI 1; ADD; LT; IFNZRO !Abnormalstop]
+                                                     @ [SWAP; LDI; SWAP; ADD]
+                                                   else
+                                                    CA vEnv fEnv acc @ [LDI] @ CE vEnv fEnv e @ [ADD]
                                | ADeref e       -> failwith "CA: pointer dereferencing not supported yet"
 
 (* Bind declared variable in env and generate code to allocate it: *)   
@@ -163,9 +169,10 @@ module CodeGeneration =
        addv decs (Map.empty, 0) Map.empty
 
 /// CP prog gives the code for a program prog
-   let CP (P(decs,stms)) = 
+   let CP checkOutOfBounds (P(decs,stms)) = 
        let _ = resetLabels ()
        Abnormalstop := newLabel()
+       checkOUB := checkOutOfBounds
        let ((gvM,_) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
        let compilefun (tyOpt, f, xs, body) =
         let (labf, _, paras) = Map.find f fEnv
