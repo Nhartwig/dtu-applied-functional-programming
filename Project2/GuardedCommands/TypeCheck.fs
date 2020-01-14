@@ -10,7 +10,7 @@ module TypeCheck =
    let ftypcomp t1 t2 =
       let basic t =
          match t with
-         | ATyp(atyp,_) -> atyp
+         | ATyp(atyp,_) -> ATyp(atyp, None)
          | x -> x
       basic t1 = basic t2
 /// tcE gtenv ltenv e gives the type for expression e on the basis of type environments gtenv and ltenv
