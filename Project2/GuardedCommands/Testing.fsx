@@ -71,7 +71,7 @@ module Testing =
             res
         List.map (mapping) (tr) 
                     
-    let failTypechecker err tr =
+    let failTC err tr =
         if List.forall (fun x -> (List.item 1 x = "True") && (List.item 2 x = "False")) tr then () else failwith (sprintf "Typechecker passed in test that should fail: %s" err)
 
 
