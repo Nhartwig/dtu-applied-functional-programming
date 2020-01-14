@@ -1,0 +1,8 @@
+begin 
+    x : int, y : int ;
+    x , y := "apples", "oranges" ;
+    print x;
+    print y
+end
+
+
