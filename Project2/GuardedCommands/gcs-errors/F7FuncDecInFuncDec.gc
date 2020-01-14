@@ -1,0 +1,9 @@
+begin
+res : int,
+function fact(n: int, function y(): int = skip): int = 
+    if n=0  -> return 1
+    | true -> return n * fact(n-1)
+	fi;  
+res := fact(4);
+print res
+end
