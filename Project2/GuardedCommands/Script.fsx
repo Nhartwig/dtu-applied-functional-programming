@@ -99,8 +99,33 @@ Testing.test [  (0, "gcs-errors/GC1IfWrongTypeBool.gc");
 // Test of programs covered by the second task (Section 4.3):
 List.iter exec ["gcs/Ex7.gc"; "gcs/fact.gc"; "gcs/factRec.gc"; "gcs/factCBV.gc"];;
 
+// Tests that should fail in typechecker
+Testing.test [  (0, "gcs-errors/F1WrongReturnType.gc");
+                (0, "gcs-errors/F2WrongReturnType.gc");
+                (0, "gcs-errors/F3TooFewArguments.gc");
+                (0, "gcs-errors/F4TooManyArguments.gc");
+                (0, "gcs-errors/F5ReturnInMain.gc");
+                (0, "gcs-errors/F6WrongTypeAssInFunc.gc");
+                (0, "gcs-errors/F7FuncDecInFuncDec.gc");
+                (0, "gcs-errors/LD1TypeOverride.gc");
+                (0, "gcs-errors/LD2FuncDec.gc")
+                ]
+|> Testing.hideExnMsg |> Testing.failTypechecker "Func and LD";;
+
 // Test of programs covered by the fourth task (Section 5.4):
 List.iter exec ["gcs/A0.gc"; "gcs/A1.gc"; "gcs/A2.gc"; "gcs/A3.gc"];;
+
+// Tests that should fail in typechecker
+Testing.test [  (0, "gcs-errors/A1ArrayWithoutSize.gc");
+                (0, "gcs-errors/A2AssignWrongType.gc");
+                (0, "gcs-errors/A3ArrayWithSizeAsFuncArg.gc");
+                (0, "gcs-errors/A4LocDecArrayWithoutSize.gc");
+                (0, "gcs-errors/A5AssignWrongTypeToArrayIndex.gc");
+                (0, "gcs-errors/A6PassWrongTypeArrayToFunc.gc");
+                (0, "gcs-errors/A7BoolAsArrayIndex.gc");
+                (0, "gcs-errors/A8IndexOfNonArray.gc");
+                ]
+|> Testing.hideExnMsg |> Testing.failTypechecker "Array";;
 
 // Test of programs covered by the actual fifth task (Section 6.1)
 List.iter exec ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/Masg4.gc"];;
