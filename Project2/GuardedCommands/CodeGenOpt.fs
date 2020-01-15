@@ -22,6 +22,9 @@ module CodeGenerationOpt =
    type ParamDecs = (Typ * string) list
    type funEnv = Map<string, label * Typ option * ParamDecs>
 
+   // Abnormal stop label
+   let Abnormalstop = ref ""
+
 
 (* Directly copied from Peter Sestoft   START  
    Code-generating functions that perform local optimizations *)
@@ -117,11 +120,17 @@ module CodeGenerationOpt =
                         let (labfalse, k2) = addLabel (addCST 0 k1)
                         CE b1 vEnv fEnv (IFZERO labfalse :: CE b2 vEnv fEnv (addJump jumpend k2))
 
-       | Apply(o,[e1;e2])  when List.exists (fun x -> o=x) ["+"; "*"; "="]
+       | Apply(o,[e1;e2])  when List.exists (fun x -> o=x) ["+"; "*"; "="; "-"; "<>"; "<"; ">"; "<="; ">="]
                           -> let ins = match o with
                                        | "+"  -> ADD::k
                                        | "*"  -> MUL::k
+                                       | "-"  -> SUB::k
                                        | "="  -> EQ::k
+                                       | "<>" -> EQ::addNOT k
+                                       | "<"  -> LT::k
+                                       | ">"  -> SWAP::LT::k
+                                       | "<=" -> CSTI 1::ADD::LT::k
+                                       | ">=" -> SWAP::CSTI 1::ADD::LT::k
                                        | _    -> failwith "CE: this case is not possible"
                              CE e1 vEnv fEnv (CE e2 vEnv fEnv ins) 
 
@@ -159,13 +168,34 @@ module CodeGenerationOpt =
        match stm with
        | PrintLn e        -> CE e vEnv fEnv (PRINTI:: INCSP -1 :: k) 
 
-       | Ass(acc,e)       -> failwith "removed assignment since it doesn't work with multi assignment, TODO fix"
+       | Ass(acc,e)       -> CA (List.head acc) vEnv fEnv (CE (List.head e) vEnv fEnv (STI:: addINCSP -1 k))
+                             //failwith "removed assignment since it doesn't work with multi assignment, TODO fix"
                              //CA acc vEnv fEnv (CE e vEnv fEnv (STI:: addINCSP -1 k))
 
        | Block([],stms)   -> CSs stms vEnv fEnv k
 
+       | Alt (GC gcs)  -> match gcs with
+                          | [] -> addGOTO !Abnormalstop k
+                          | _  -> let (labend, k) = addLabel k
+                                  let k = addGOTO !Abnormalstop k
+                                  CSGC vEnv fEnv labend gcs k
+
+       | Do (GC gcs)   -> match gcs with 
+                          | [] -> k
+                          | _  -> let labelstart = newLabel()
+                                  Label labelstart :: CSGC vEnv fEnv labelstart gcs k
+
        | _                -> failwith "CS: this statement is not supported yet"
-                                                          
+
+   and CSGC vEnv fEnv goto gcs k =
+        match gcs with
+        | []                 -> k
+        | (exp, stms)::gcs'  -> let (nextLabel, k) = addLabel k
+                                let k = addGOTO goto k
+                                        |> CSs stms vEnv fEnv
+                                CE exp vEnv fEnv (IFZERO nextLabel :: (CSGC vEnv fEnv goto gcs' k))
+        
+
    and CSs stms vEnv fEnv k = 
         match stms with
         | []   -> k
@@ -192,7 +222,8 @@ module CodeGenerationOpt =
    let CP (P(decs,stms)) = 
        let _ = resetLabels ()
        let ((gvM,_) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
-       initCode @ CSs stms gvEnv fEnv [STOP]     
+       initCode @ CSs stms gvEnv fEnv [STOP]    
+       @ [Label !Abnormalstop] @ List.collect (fun x -> [CSTI (int x); PRINTC]) ['E';'R';'R';'O';'R'] @ [STOP] 
 
 
 
