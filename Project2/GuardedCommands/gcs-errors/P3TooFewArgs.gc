@@ -1,0 +1,7 @@
+﻿begin
+  x : int,
+  procedure p(y: int, z: int) = { y := y + z; print y; y := 1 };
+  x:= 7;
+  p(x);
+  print x
+end

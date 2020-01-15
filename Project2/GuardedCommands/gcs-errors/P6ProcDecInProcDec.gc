@@ -1,0 +1,7 @@
+﻿begin
+  x : int,
+  procedure p(y: int, procedure o(z: int) = {z := z+1 ; skip} ) = { w : int; w := 10 + y; print w; y := 42 };
+  x:= 59;
+  p(x);
+  print x
+end

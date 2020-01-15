@@ -1,0 +1,9 @@
+﻿begin
+  x : int,
+  z : int,
+  procedure p(y: int) = { print y; y := 69 };
+  x:= 0;
+  z:= 42;
+  p(x,z);
+  print x
+end
