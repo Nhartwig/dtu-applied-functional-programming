@@ -23,6 +23,12 @@ module CodeGeneration =
    type ParamDecs = (Typ * string) list
    type funEnv = Map<string, label * Typ option * ParamDecs>
 
+   // Abnormal stop label
+   let Abnormalstop = ref ""
+
+   // Whatever out of bounds should be dynamically checked for arrays
+   let checkOUB = ref true
+
 /// CE vEnv fEnv e gives the code for an expression e on the basis of a variable and a function environment
    let rec CE vEnv fEnv = 
        function
@@ -69,11 +75,16 @@ module CodeGeneration =
    and CA vEnv fEnv = function | AVar x         -> match Map.find x (fst vEnv) with
                                                    | (GloVar addr,_) -> [CSTI addr]
                                                    | (LocVar addr,_) -> [GETBP; CSTI addr; ADD]
-                               | AIndex(acc, e) -> CA vEnv fEnv acc @ [LDI] @ CE vEnv fEnv e @ [ADD]
+                               | AIndex(acc, e) -> if !checkOUB then
+                                                     CA vEnv fEnv acc @ 
+                                                     [DUP; DUP; LDI; SUB] @ 
+                                                     CE vEnv fEnv e @ [DUP; CSTI 0; LT;  IFNZRO !Abnormalstop]
+                                                     @ [SWAP; GETSP; CSTI 1; SUB; LDI; CSTI 1; ADD; LT; IFNZRO !Abnormalstop]
+                                                     @ [SWAP; LDI; SWAP; ADD]
+                                                   else
+                                                    CA vEnv fEnv acc @ [LDI] @ CE vEnv fEnv e @ [ADD]
                                | ADeref e       -> failwith "CA: pointer dereferencing not supported yet"
 
-   let Abnormalstop = List.collect (fun x -> [CSTI (int x); PRINTC]) ['E';'R';'R';'O';'R'] @ [STOP]
-  
 (* Bind declared variable in env and generate code to allocate it: *)   
    let allocate (kind : int -> Var) (typ, x) (vEnv : varEnv)  =
     let (env, fdepth) = vEnv 
@@ -107,10 +118,10 @@ module CodeGeneration =
                               code @ CSs vEnv fEnv stms @ [INCSP -(List.length decs)]
 
        | Alt (GC gcs) ->  match gcs with
-                          | [] -> Abnormalstop
+                          | [] -> [GOTO !Abnormalstop]
                           | xs -> let labelend = newLabel()
                                   List.collect (CSGC vEnv fEnv labelend) xs 
-                                  @ Abnormalstop @ [Label labelend]
+                                  @ [GOTO !Abnormalstop] @ [Label labelend]
 
        | Do (GC gcs) ->   match gcs with 
                           | [] -> []
@@ -158,8 +169,10 @@ module CodeGeneration =
        addv decs (Map.empty, 0) Map.empty
 
 /// CP prog gives the code for a program prog
-   let CP (P(decs,stms)) = 
+   let CP checkOutOfBounds (P(decs,stms)) = 
        let _ = resetLabels ()
+       Abnormalstop := newLabel()
+       checkOUB := checkOutOfBounds
        let ((gvM,_) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
        let compilefun (tyOpt, f, xs, body) =
         let (labf, _, paras) = Map.find f fEnv
@@ -167,7 +180,7 @@ module CodeGeneration =
         let code = CS (envf, fdepthf) fEnv body
         [Label labf] @ code 
         @ match tyOpt with
-          | Some _ -> Abnormalstop
+          | Some _ -> [GOTO !Abnormalstop]
           | None -> [RET (List.length paras-1)]
        let functions = 
         List.choose (function
@@ -176,6 +189,7 @@ module CodeGeneration =
                      decs
        
        initCode @ CSs gvEnv fEnv stms @ [STOP]
+       @ [Label !Abnormalstop] @ List.collect (fun x -> [CSTI (int x); PRINTC]) ['E';'R';'R';'O';'R'] @ [STOP]
        @ List.concat functions
 
 
