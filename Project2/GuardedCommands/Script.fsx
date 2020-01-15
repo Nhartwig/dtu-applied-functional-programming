@@ -157,8 +157,7 @@ Testing.test [  (0, "gcs-errors/P1WrongProcedureType.gc");
 |> Testing.hideExnMsg |> Testing.failTC "Procedure"
 
 // Test of programs covered by the fifth task (Section 7.4):
-// Pointers not implemented yet
-// List.iter exec ["gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/par2.gc"];;
+List.iter exec ["gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/par2.gc"];;
 
 
 (*

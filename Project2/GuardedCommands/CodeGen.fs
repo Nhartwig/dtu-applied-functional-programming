@@ -36,6 +36,8 @@ module CodeGeneration =
        | B b          -> [CSTI (if b then 1 else 0)]
        | Access acc   -> CA vEnv fEnv acc @ [LDI] 
 
+       | Addr acc     -> CA vEnv fEnv acc
+
        | Apply("-", [e]) -> CE vEnv fEnv e @  [CSTI 0; SWAP; SUB]
 
        | Apply("!", [e]) -> CE vEnv fEnv e @ [NOT]
@@ -83,7 +85,7 @@ module CodeGeneration =
                                                      @ [SWAP; LDI; SWAP; ADD]
                                                    else
                                                     CA vEnv fEnv acc @ [LDI] @ CE vEnv fEnv e @ [ADD]
-                               | ADeref e       -> failwith "CA: pointer dereferencing not supported yet"
+                               | ADeref e       -> CE vEnv fEnv e
 
 (* Bind declared variable in env and generate code to allocate it: *)   
    let allocate (kind : int -> Var) (typ, x) (vEnv : varEnv)  =

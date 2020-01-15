@@ -68,4 +68,6 @@ rule tokenize =
   | "+"         { PLUS }   
   | identifier  { keyword(Encoding.UTF8.GetString(lexbuf.Lexeme)) }
   | eof         { EOF }
+  | "^"         { CARAT }
+  | "&"         { AMBS }
 
