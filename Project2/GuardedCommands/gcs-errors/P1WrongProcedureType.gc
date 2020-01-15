@@ -1,0 +1,7 @@
+﻿begin
+  x : bool,
+  procedure p(y: int) = { print y; y := 1 };
+  x:= true;
+  p(x);
+  print x
+end

@@ -37,7 +37,7 @@ let ex0Tree = parseFromFile "gcs/Ex0.gc";;
 
 let _ = tcP ex0Tree;;
 
-let ex0Code = CP ex0Tree;; 
+let ex0Code = CP true ex0Tree;; 
 
 let _ = go ex0Tree;;
 
@@ -53,7 +53,7 @@ let ex1Tree = parseFromFile "gcs/Ex1.gc";;
 let _ = tcP ex1Tree;;
 
 // obtain symbolic code:
-let ex1Code = CP ex1Tree;; 
+let ex1Code = CP true ex1Tree;; 
 
 // -- is executed with trace as follows:
 let stack = goTrace ex1Tree;;
@@ -145,10 +145,20 @@ Testing.test [  (0, "gcs-errors/MAWrongTypeToOne.gc");
 
 
 // Test of programs covered by the fifth task (Section 6.1):
-List.iter exec ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"];;
+List.iter exec ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"; "gcs/P1IntProcedureType.gc" ]
+
+Testing.test [  (0, "gcs-errors/P1WrongProcedureType.gc");
+                (0, "gcs-errors/P2WrongProcedureType.gc");
+                (0, "gcs-errors/P3TooFewArgs.gc");
+                (0, "gcs-errors/P4TooManyArgs.gc");
+                (0, "gcs-errors/P5WrongTypeAssInProc.gc");
+                (0, "gcs-errors/P6ProcDecInProcDec.gc");
+                ]
+|> Testing.hideExnMsg |> Testing.failTC "Procedure"
 
 // Test of programs covered by the fifth task (Section 7.4):
 List.iter exec ["gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/par2.gc"];;
+
 
 (*
 // Test of programs covered by the fifth task using optimized compilation (Section 8.2):

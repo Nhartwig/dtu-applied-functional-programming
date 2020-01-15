@@ -45,7 +45,7 @@ module Testing =
         (trytest (fun _ -> tcP (parseFromFile gcfile)))
 
     let testCP gcfile =
-        (trytest (fun _ -> CP (parseFromFile gcfile)))
+        (trytest (fun _ -> CP true (parseFromFile gcfile)))
 
     let test' (gcFile:string) (testid:int) = 
         let n = (List.ofArray(gcFile.Split '/')).[1]
