@@ -188,7 +188,9 @@ module CodeGeneration =
                      | VarDec _ -> None)
                      decs
        
-       initCode @ CSs gvEnv fEnv stms @ [STOP]
+       let labmain = newLabel()
+       initCode 
+       @ [CALL(0, labmain); INCSP -1; STOP; Label labmain] @ CSs gvEnv fEnv stms @ [RET -1]
        @ [Label !Abnormalstop] @ List.collect (fun x -> [CSTI (int x); PRINTC]) ['E';'R';'R';'O';'R'] @ [STOP]
        @ List.concat functions
 
