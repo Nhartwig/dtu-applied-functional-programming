@@ -160,10 +160,10 @@ Testing.test [  (0, "gcs-errors/P1WrongProcedureType.gc");
 List.iter exec ["gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/par2.gc"];;
 
 
-(*
+
 // Test of programs covered by the fifth task using optimized compilation (Section 8.2):
 List.iter execOpt ["gcs/Ex1.gc"; "gcs/Ex2.gc"];;
-
+(*
 // Test of programs covered by the fifth task using optimized compilation (Section 8.2):
 List.iter execOpt ["par1.gc"; "factImpPTyp.gc"; "QuickSortV2.gc"; "par2.gc"];;
 
