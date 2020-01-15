@@ -1,0 +1,7 @@
+﻿begin
+  x : int,
+  procedure p(y: int) = { w : int; w := 10 + y; print w; w := true };
+  x:= 59;
+  p(x);
+  print x
+end

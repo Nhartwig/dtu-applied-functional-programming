@@ -153,14 +153,14 @@ List.iter exec ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"];;
 
 
 // Tests that should pass in typechecker
-Testing.test [  (0, "gcs/P1IntProcedureType.gc");
-                ]
-|> Testing.hideExnMsg //|> Testing.failTC "Procedure"
+List.iter exec [  ("gcs/P1IntProcedureType.gc"); ]
 
 Testing.test [  (0, "gcs-errors/P1WrongProcedureType.gc");
                 (0, "gcs-errors/P2WrongProcedureType.gc");
-                (0, "gcs-errors/P3NoArgsToProcedureCall.gc");
-                (0, "gcs-errors/P4TooManyArgsToProcedureCall.gc");
+                (0, "gcs-errors/P3TooFewArgs.gc");
+                (0, "gcs-errors/P4TooManyArgs.gc");
+                (0, "gcs-errors/P5WrongTypeAssInProc.gc");
+                (0, "gcs-errors/P6ProcDecInProcDec.gc");
                 ]
 |> Testing.hideExnMsg |> Testing.failTC "Procedure"
 

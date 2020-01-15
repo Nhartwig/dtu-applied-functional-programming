@@ -1,7 +1,0 @@
-﻿begin
-  x : int,
-  procedure p(y: int) = { print y; y := 1 };
-  x:= 7;
-  p( );
-  print x
-end
