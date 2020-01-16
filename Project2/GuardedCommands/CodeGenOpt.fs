@@ -107,6 +107,8 @@ module CodeGenerationOpt =
        | B b          -> addCST (if b then 1 else 0) k
        | Access acc  -> CA acc vEnv fEnv (LDI :: k) 
 
+       | Apply("!",[e]) -> CE e vEnv fEnv (addNOT k)
+
        | Apply("-",[e]) -> CE e vEnv fEnv (addCST 0 (SWAP:: SUB :: k))
 
        | Apply("&&",[b1;b2]) -> 
