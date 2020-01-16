@@ -223,6 +223,7 @@ module CodeGenerationOpt =
 
    let CP (P(decs,stms)) = 
        let _ = resetLabels ()
+       Abnormalstop := newLabel()
        let ((gvM,_) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
        initCode @ CSs stms gvEnv fEnv [STOP]    
        @ [Label !Abnormalstop] @ List.collect (fun x -> [CSTI (int x); PRINTC]) ['E';'R';'R';'O';'R'] @ [STOP] 
