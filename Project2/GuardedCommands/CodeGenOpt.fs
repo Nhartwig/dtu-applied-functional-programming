@@ -192,10 +192,11 @@ module CodeGenerationOpt =
    and CSGC vEnv fEnv goto gcs k =
         match gcs with
         | []                 -> k
-        | (exp, stms)::gcs'  -> let (nextLabel, k) = addLabel k
+        | (exp, stms)::gcs'  -> let k = (CSGC vEnv fEnv goto gcs' k)
+                                let (nextLabel, k) = addLabel k
                                 let k = addGOTO goto k
                                         |> CSs stms vEnv fEnv
-                                CE exp vEnv fEnv (IFZERO nextLabel :: (CSGC vEnv fEnv goto gcs' k))
+                                CE exp vEnv fEnv (IFZERO nextLabel ::k )
         
 
    and CSs stms vEnv fEnv k = 
@@ -225,8 +226,8 @@ module CodeGenerationOpt =
        let _ = resetLabels ()
        Abnormalstop := newLabel()
        let ((gvM,_) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
-       initCode @ CSs stms gvEnv fEnv [STOP]    
-       @ [Label !Abnormalstop] @ List.collect (fun x -> [CSTI (int x); PRINTC]) ['E';'R';'R';'O';'R'] @ [STOP] 
+       initCode @ CSs stms gvEnv fEnv ([STOP]    
+       @ [Label !Abnormalstop] @ List.collect (fun x -> [CSTI (int x); PRINTC]) ['E';'R';'R';'O';'R'] @ [STOP])
 
 
 
