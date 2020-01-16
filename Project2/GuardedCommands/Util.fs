@@ -51,6 +51,8 @@ open GuardedCommands.Frontend.TypeCheck
 
 module CompilerUtil =
 
+   let CPOpt p = CodeGenerationOpt.CP p
+
 /// goOpt p compiles (using the optimized version) and runs an abstract syntax for a program  
    let goOpt p = run(code2ints(CodeGenerationOpt.CP p))
 
