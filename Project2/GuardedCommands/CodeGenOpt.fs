@@ -164,19 +164,23 @@ module CodeGenerationOpt =
       | AVar x         -> match Map.find x (fst vEnv) with
                           | (GloVar addr,_) -> addCST addr k
                           | (LocVar addr,_) -> GETBP :: addCST addr (ADD :: k)
-      | AIndex(acc, e) -> failwith "CA: array indexing not supported yet"
+      | AIndex(acc, e) -> CA acc vEnv fEnv (LDI :: (CE e vEnv fEnv (ADD :: k)))
       | ADeref e       -> failwith "CA: pointer dereferencing not supported yet"
 
    
 (* Bind declared variable in env and generate code to allocate it: *)  
-   let allocate (kind : int -> Var) (typ, x) (vEnv : varEnv) k  =
+   let allocate (kind : int -> Var) (typ, x) (vEnv : varEnv)  =
     let (env, fdepth) = vEnv 
     match typ with
-    | ATyp (ATyp _, _) -> failwith "allocate: array of arrays not permitted"
-    | ATyp (t, Some i) -> failwith "allocate: array not supported yet"
+    | ATyp (ATyp _, _) -> 
+      raise (Failure "allocate: array of arrays not permitted")
+    | ATyp (t, Some i) -> 
+      let newEnv = (Map.add x (kind (fdepth+i), typ) env, fdepth+i+1) 
+      let code = [INCSP i; GETSP; CSTI (i-1); SUB]
+      (newEnv, code)
     | _ -> 
       let newEnv = (Map.add x (kind fdepth, typ) env, fdepth+1)
-      let code = addINCSP 1 k
+      let code = [INCSP 1]
       (newEnv, code)
 
                       
@@ -191,8 +195,8 @@ module CodeGenerationOpt =
 
        | Block([],stms)   -> CSs stms vEnv fEnv k
 
-       | Block(decs, stms) -> let (vEnv, code) = List.fold (fun (env, c) (VarDec(t,x)) -> let (e, c') = allocate LocVar (t,x) env c
-                                                                                          (e, c')) (vEnv, []) decs
+       | Block(decs, stms) -> let (vEnv, code) = List.fold (fun (env, c) (VarDec(t,x)) -> let (e, c') = allocate LocVar (t,x) env
+                                                                                          (e, c @ c')) (vEnv, []) decs
                               code @
                               (addINCSP (-(List.length decs)) k
                               |> CSs stms vEnv fEnv)
@@ -234,14 +238,15 @@ module CodeGenerationOpt =
 (* Build environments for global variables and functions *)
 
    let makeGlobalEnvs decs = 
+       let decs = List.rev decs
        let rec addv decs vEnv fEnv k = 
            match decs with 
            | []         -> (vEnv, fEnv, k)
            | dec::decr  -> 
              match dec with
-             | VarDec (typ, var) -> let (vEnv1, code1) = allocate GloVar (typ, var) vEnv k
+             | VarDec (typ, var) -> let (vEnv1, code1) = allocate GloVar (typ, var) vEnv
                                     let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv code1
-                                    (vEnv2, fEnv2, code2)
+                                    (vEnv2, fEnv2, code1 @ code2)
              | FunDec (tyOpt, f, xs, body) 
                 -> addv decr vEnv (Map.add f (newLabel(), tyOpt, xs) fEnv) k
 
