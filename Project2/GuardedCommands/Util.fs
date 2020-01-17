@@ -54,7 +54,7 @@ module CompilerUtil =
    let CPOpt p = CodeGenerationOpt.CP p
 
 /// goOpt p compiles (using the optimized version) and runs an abstract syntax for a program  
-   let goOpt p = run(code2ints(CodeGenerationOpt.CP p))
+   let goOpt p = run(code2ints(CodeGenerationOpt.CP true p))
 
 /// go p compiles and runs an abstract syntax for a program  
    let go p = run(code2ints(CodeGeneration.CP true p))
@@ -62,7 +62,7 @@ module CompilerUtil =
 /// goOpt p compile and runs an abstract syntax for a program showing a program trace  
    let goTrace p = VirtualMachine.runTrace(code2ints(CodeGeneration.CP true p))
 
-   let goOptTrace p = VirtualMachine.runTrace(code2ints(CodeGenerationOpt.CP p))
+   let goOptTrace p = VirtualMachine.runTrace(code2ints(CodeGenerationOpt.CP true p))
 
 /// exec filename parses, type checks, compiles and runs a program in a file
    let exec filename =  printfn "\nParse, typecheck, compilation and execution of %s:" filename 
