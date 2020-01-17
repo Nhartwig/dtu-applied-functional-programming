@@ -194,11 +194,11 @@ module CodeGenerationOpt =
       raise (Failure "allocate: array of arrays not permitted")
     | ATyp (t, Some i) -> 
       let newEnv = (Map.add x (kind (fdepth+i), typ) env, fdepth+i+1) 
-      let code = [INCSP i; GETSP; CSTI (i-1); SUB]
+      let code = fun x -> INCSP i::GETSP::CSTI (i-1)::SUB::x
       (newEnv, code)
     | _ -> 
       let newEnv = (Map.add x (kind fdepth, typ) env, fdepth+1)
-      let code = [INCSP 1]
+      let code = fun x -> addINCSP 1 x
       (newEnv, code)
 
                       
@@ -216,10 +216,9 @@ module CodeGenerationOpt =
        | Block([],stms)   -> CSs stms vEnv fEnv k
 
        | Block(decs, stms) -> let (vEnv, code) = List.fold (fun (env, c) (VarDec(t,x)) -> let (e, c') = allocate LocVar (t,x) env
-                                                                                          (e, c @ c')) (vEnv, []) decs
-                              code @
-                              (addINCSP (-(List.length decs)) k
-                              |> CSs stms vEnv fEnv)
+                                                                                          (e, fun x -> c (c' x))) (vEnv, id) decs
+                              code((addINCSP (-(List.length decs)) k
+                                  |> CSs stms vEnv fEnv))
 
        | Alt (GC gcs)  -> match gcs with
                           | [] -> addGOTO !Abnormalstop k
@@ -263,12 +262,12 @@ module CodeGenerationOpt =
    let makeGlobalEnvs decs = 
        let rec addv decs vEnv fEnv = 
            match decs with 
-           | []         -> (vEnv, fEnv, [])
+           | []         -> (vEnv, fEnv, id)
            | dec::decr  -> 
              match dec with
              | VarDec (typ, var) -> let (vEnv1, code1) = allocate GloVar (typ, var) vEnv
                                     let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv
-                                    (vEnv2, fEnv2, code1 @ code2)
+                                    (vEnv2, fEnv2, fun x -> code1 (code2 x))
              | FunDec (tyOpt, f, xs, body) 
                 -> addv decr vEnv (Map.add f (newLabel(), tyOpt, xs) fEnv)
 
@@ -300,7 +299,7 @@ module CodeGenerationOpt =
                (CSs stms gvEnv fEnv ([RET -1]
                @ [Label !Abnormalstop] @ List.collect (fun x -> [CSTI (int x); PRINTC]) ['E';'R';'R';'O';'R'] @ [STOP]
                @ List.concat functions))
-       initCode @ CALL(0, labmain):: INCSP -1:: STOP ::  k
+       initCode (CALL(0, labmain):: INCSP -1:: STOP ::  k)
 
 
 
