@@ -171,7 +171,11 @@ module Interpreter =
                                   | "<=" -> if ((<=) i1 i2) then (1, store2) else (0, store2)
                                   | ">=" -> if ((>=) i1 i2) then (1, store2) else (0, store2)
                                   | _ -> failwith " this case is not possible "
-                                
+
+        | Apply(f, es) -> let (i, store1) = callfun f es locEnv gloEnv store
+                          (i,store1)    
+       
+        | _            -> failwith "CE: not supported yet"                               
                                                                   
 
 
@@ -185,7 +189,8 @@ module Interpreter =
     and access (acc: Access) (locEnv:locEnv) (gloEnv:gloEnv) (store:store) = 
         match acc with
         | AVar x -> (lookup (fst locEnv) x, store)
-        | AIndex (acc,e) ->  let (a, store1) = (access acc locEnv gloEnv store)
+        | AIndex (acc,e) ->  // implement out of bounds checking?
+                             let (a, store1) = (access acc locEnv gloEnv store)
                              let aVal = getSto store1 a
                              let (i, store2) = eval e locEnv gloEnv store1
                              (aVal+i, store2)
@@ -209,6 +214,13 @@ module Interpreter =
         let store3 = exec fBody fBodyEnv gloEnv store2 
         (-111, store3)
 
+    let run (P(decs, stmts)) vs = 
+        let ((varEnv, nextLoc), funEnv, store0) = initEnvandStore (decs)
+        let compileFun (tyOpt, f, xs, body) = 
+        let code = exec () funEnv body
+        let (mainParams, mainBody) = lookup funEnv "main"
+        let (mainBodyEnv, store1) = bindVars (List.map snd mainParams) vs (varEnv, nextloc) store0
+        exec mainBody mainBodyEnv (varEnv, funEnv) store1
 
 
   
