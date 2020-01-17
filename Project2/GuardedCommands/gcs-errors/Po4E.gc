@@ -1,0 +1,6 @@
+begin
+    x : bool,
+    function f (a: ^int) : bool = return a^;
+    x := true;
+    x := f(&x)
+end

@@ -159,7 +159,18 @@ Testing.test [  (0, "gcs-errors/P1WrongProcedureType.gc");
 // Test of programs covered by the fifth task (Section 7.4):
 List.iter exec ["gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/par2.gc"];;
 
-Testing.test []
+Testing.test [ (0, "gcs-errors/Po1E.gc");
+               (0, "gcs-errors/Po2E.gc");
+               (0, "gcs-errors/Po3E.gc");
+               (0, "gcs-errors/Po4E.gc");
+               (0, "gcs-errors/Po5E.gc");
+               (0, "gcs-errors/Po6E.gc");
+               (0, "gcs-errors/Po7E.gc");
+               (0, "gcs-errors/Po8E.gc");
+               (0, "gcs-errors/Po9E.gc");
+               (0, "gcs-errors/Po10E.gc");
+               (0, "gcs-errors/Po11E.gc")
+               ]
 |> Testing.hideExnMsg |> Testing.failTC "Pointer"
 
 // Test of programs covered by the fifth task using optimized compilation (Section 8.2):

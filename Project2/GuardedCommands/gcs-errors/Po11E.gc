@@ -1,0 +1,6 @@
+begin
+    x : int[2],
+    procedure f (y : ^bool[]) = print y^[0];
+    x[0] := 1;
+    f(&x)
+end
