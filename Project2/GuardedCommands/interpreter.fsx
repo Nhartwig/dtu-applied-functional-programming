@@ -90,39 +90,96 @@ module Interpreter =
         | PrintLn e -> let (i1,store1) = (eval e locEnv gloEnv store)
                        printf "%O" i1 
                        store1
-        | Ass (acc, e) -> let loc1, store1 = List.map (access locEnv gloEnv store) acc 
-                          let res, store2 = eval e locEnv gloEnv store1
-                          
-                          (setSto store2 loc1 res)
-        | Block ->
-        | Block ->
-        | Alt ->
-        | Do -> 
-        | Return ->
-        | Return ->
+        | Ass (acc, e) -> let rec loop ac ex store = 
+                            match (ac,ex) with  
+                            | [],[] -> store 
+                            | (ac::accTail,ex::exTail) -> let loc1, store1 = (access ac locEnv gloEnv store) 
+                                                          let res, store2 = (eval ex locEnv gloEnv store1)                      
+                                                          let store' = (setSto store2 loc1 res) 
+                                                          loop accTail exTail store'                
+                          loop acc e store 
+                              
+        | Block([],stmts) -> let rec execBlock stmts store =
+                                match stmts with
+                                | [] -> store
+                                | stmt::stmts -> let store1 = (exec stmt locEnv gloEnv store)
+                                                 execBlock stmts store1
+                             execBlock stmts store
 
+        | Block(decs,stmts) ->  let rec execBlock' decs stmts store locEnv=
+                                  match decs,stmts with 
+                                  | [],[] -> store                       
+                                  | VarDec(typ, x)::decList, stmt::stmtList -> let (locEnv1, store1) = (allocate (typ, x) locEnv store) 
+                                                                               let (store2) = exec stmt locEnv1 gloEnv store1 
+                                                                               execBlock' decList stmtList store2 locEnv1
+                                  | _, stmt::stmtList -> let (store1) = exec stmt locEnv gloEnv store
+                                                         execBlock' [] stmtList store1 locEnv
+                                execBlock' decs stmts store locEnv 
 
-(*
-        | PrintLn(e) ->  printfn (eval e locEnv gloEnv store)    
-        | Ass(accList, eList) -> List.map (fun acc,e -> let (loc, store1) = access acc locEnv gloEnv store
-                                    let (res, store2) = eval e locEnv gloEnv store1
-                                        (res, setSto (store2 loc res))) List.zip(accList, eList)         
-        | Return (Some e)                                                            
-        | Alt gc ->                                                                  
-        | Do gc ->                                                                  
-        | Block([],stmList) ->   List.collect (exec locEnv gloEnv store) stmList    
-        | Block(decList, stmList) -> List.coll
-        | Call(str,eList) -> 
-*)
+        | Alt(GC (gc)) -> List.fold (fun _ gc -> (interpretGC gc locEnv gloEnv store)) emptyStore gc
+
+        | Do(GC(gc)) -> match gc with
+                        | [] -> store
+                        | gcList -> List.fold (fun _ gc -> (interpretGC gc locEnv gloEnv store)) emptyStore gc
+
+        | Return (Some e) -> let (i,store1) = eval e locEnv gloEnv store 
+                             store1
+
+        | Return None -> store
+
+        | Call(f, es) -> let (i, store1) = callfun f es locEnv gloEnv store
+                         store1                         
+
+                       
+    and interpretGC gc locEnv gloEnv store = 
+        match gc with
+        | (exp, stms) -> let store1 = List.fold (fun _ stm -> (exec stm locEnv gloEnv store)) emptyStore stms 
+                         let (i,store2) = eval exp locEnv gloEnv store1
+                         store2
+
 
     // Evaluate Expression: expr -> locEnv -> gloEnv -> store -> int*store 
 
     and eval e locEnv gloEnv store : int * store = 
-        match e with                         
+        match e with     
+        | N n -> (n, store)    
+        | B b -> if b then (1, store) else (0, store)                
         | Access acc -> let (loc, store1) = access acc locEnv gloEnv store
-                            ((getSto store1 loc), store1) // return val, store1                      (* x    or  ^p    or  a[e]     *)
-        | Addr acc ->               (* &x   or  &p^   or  &a[e]    *)
-        | Apply(str,eList) -> // apply the function
+                        ((getSto store1 loc), store1)
+
+        | Apply("-",[e]) -> let (i,store1) = eval e locEnv gloEnv store 
+                            (-i, store1)
+        | Apply("!",[e]) -> let (i,store1) = eval e locEnv gloEnv store 
+                            if i=0 then (1,store1) else (0, store1)
+        | Apply("&&",[b1;b2]) -> let b1R, b2R, store1 = (checkBool b1 b2 locEnv gloEnv store)
+                                 if ((b1R =1) && (b1R= 1)) then (1, store1) else (0, store1) 
+
+        | Apply("||", [b1;b2]) -> let b1R, b2R, store1 = (checkBool b1 b2 locEnv gloEnv store)
+                                  if ((b1R = 1)||(b2R=1)) then (1, store) else (0, store)
+
+        | Apply(o,[e1;e2]) when List.exists (fun x -> o=x) ["+"; "*"; "="; "-"; "<>"; "<"; ">"; "<="; ">="]
+                             -> let (i1, store1) = (eval e1 locEnv gloEnv store)        
+                                let (i2, store2) = (eval e2 locEnv gloEnv store1)                          
+                                match o with
+                                  | "+"  -> (((+) i1 i2), store2)
+                                  | "*"  -> (((*) i1 i2), store2)
+                                  | "-"  -> (((-) i1 i2), store2)
+                                  | "="  -> if ((=) i1 i2) then (1, store2) else (0, store2)
+                                  | "<>" -> if ((<>) i1 i2) then (1, store2) else (0, store2)
+                                  | "<"  -> if ((<) i1 i2) then (1, store2) else (0, store2)
+                                  | ">"  -> if ((>) i1 i2) then (1, store2) else (0, store2)
+                                  | "<=" -> if ((<=) i1 i2) then (1, store2) else (0, store2)
+                                  | ">=" -> if ((>=) i1 i2) then (1, store2) else (0, store2)
+                                  | _ -> failwith " this case is not possible "
+                                
+                                                                  
+
+
+    and checkBool b1 b2 locEnv gloEnv store =
+        let b1Result, store1 = (eval b1 locEnv gloEnv store)
+        let b2Result, store2 = (eval b2 locEnv gloEnv store1)
+        (b1Result, b2Result, store2)
+
     // Access: access -> locEnv -> gloEnv -> store -> addr*store
 
     and access (acc: Access) (locEnv:locEnv) (gloEnv:gloEnv) (store:store) = 
@@ -133,6 +190,24 @@ module Interpreter =
                              let (i, store2) = eval e locEnv gloEnv store1
                              (aVal+i, store2)
         | ADeref e -> (eval e locEnv gloEnv store)
+
+    and evals es locEnv gloEnv store : int list * store = 
+        match es with 
+        | []     -> ([], store)
+        | e1::er ->
+          let (v1, store1) = eval e1 locEnv gloEnv store
+          let (vr, storer) = evals er locEnv gloEnv store1 
+          (v1::vr, storer)     
+
+    and callfun f es locEnv gloEnv store : int * store = 
+        let (_, nextloc) = locEnv
+        let (varEnv, funEnv) = gloEnv
+        let (paramdecs, fBody) = lookup funEnv f
+        let (vs, store1) = evals es locEnv gloEnv store
+        let (fBodyEnv, store2) = 
+            bindVars (List.map snd paramdecs) vs (varEnv, nextloc) store
+        let store3 = exec fBody fBodyEnv gloEnv store2 
+        (-111, store3)
 
 
 
