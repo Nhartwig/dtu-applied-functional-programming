@@ -85,23 +85,39 @@ module Interpreter =
 
 /////////////////////////////////////////////////////////////////////
 
-    let rec exec stmt locEnv gloEnv store = 
+    let rec exec stmt (locEnv:locEnv) (gloEnv:gloEnv) (store:store) : store = 
         match stmt with
-        | PrintLn(e) ->  printfn (eval e locEnv gloEnv store)    (* Print                          *) 
+        | PrintLn e -> let (i1,store1) = (eval e locEnv gloEnv store)
+                       printf "%O" i1 
+                       store1
+        | Ass (acc, e) -> let loc1, store1 = List.map (access locEnv gloEnv store) acc 
+                          let res, store2 = eval e locEnv gloEnv store1
+                          
+                          (setSto store2 loc1 res)
+        | Block ->
+        | Block ->
+        | Alt ->
+        | Do -> 
+        | Return ->
+        | Return ->
+
+
+(*
+        | PrintLn(e) ->  printfn (eval e locEnv gloEnv store)    
         | Ass(accList, eList) -> List.map (fun acc,e -> let (loc, store1) = access acc locEnv gloEnv store
                                     let (res, store2) = eval e locEnv gloEnv store1
-                                        (res, setSto (store2 loc res))) List.zip(accList, eList)          (* x:=e  or  p^:=e  or  a[e]:=e   *)
-        | Return (Some e)                                                           (* Return from function           *)   
-        | Alt gc ->                                                                 (* Alternative statement          *) 
-        | Do gc ->                                                                  (* Repetition statement           *) 
-        | Block([],stmList) ->   List.collect (exec locEnv gloEnv store) stmList    (* Block: grouping and scope      *)
+                                        (res, setSto (store2 loc res))) List.zip(accList, eList)         
+        | Return (Some e)                                                            
+        | Alt gc ->                                                                  
+        | Do gc ->                                                                  
+        | Block([],stmList) ->   List.collect (exec locEnv gloEnv store) stmList    
         | Block(decList, stmList) -> List.coll
         | Call(str,eList) -> 
-
+*)
 
     // Evaluate Expression: expr -> locEnv -> gloEnv -> store -> int*store 
 
-    and eval e locEnv gloEnv store = 
+    and eval e locEnv gloEnv store : int * store = 
         match e with                         
         | Access acc -> let (loc, store1) = access acc locEnv gloEnv store
                             ((getSto store1 loc), store1) // return val, store1                      (* x    or  ^p    or  a[e]     *)
@@ -109,6 +125,14 @@ module Interpreter =
         | Apply(str,eList) -> // apply the function
     // Access: access -> locEnv -> gloEnv -> store -> addr*store
 
+    and access (acc: Access) (locEnv:locEnv) (gloEnv:gloEnv) (store:store) = 
+        match acc with
+        | AVar x -> (lookup (fst locEnv) x, store)
+        | AIndex (acc,e) ->  let (a, store1) = (access acc locEnv gloEnv store)
+                             let aVal = getSto store1 a
+                             let (i, store2) = eval e locEnv gloEnv store1
+                             (aVal+i, store2)
+        | ADeref e -> (eval e locEnv gloEnv store)
 
 
 
