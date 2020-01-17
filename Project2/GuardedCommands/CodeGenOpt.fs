@@ -122,6 +122,17 @@ module CodeGenerationOpt =
                         let (labfalse, k2) = addLabel (addCST 0 k1)
                         CE b1 vEnv fEnv (IFZERO labfalse :: CE b2 vEnv fEnv (addJump jumpend k2))
 
+       | Apply("||",[b1;b2]) -> 
+                match k with
+                | IFNZRO lab :: _ -> CE b1 vEnv fEnv (IFNZRO lab :: CE b2 vEnv fEnv k)
+                | IFZERO labthen :: k1 ->
+                        let (labelse, k2) = addLabel k1
+                        CE b1 vEnv fEnv
+                            (IFNZRO labelse :: CE b2 vEnv fEnv (IFZERO labthen :: k2))
+                | _ ->  let (jumpend, k1) = makeJump k
+                        let (labtrue, k2) = addLabel (addCST 1 k1)
+                        CE b1 vEnv fEnv (IFNZRO labtrue :: CE b2 vEnv fEnv (addJump jumpend k2))
+       
        | Apply(o,[e1;e2])  when List.exists (fun x -> o=x) ["+"; "*"; "="; "-"; "<>"; "<"; ">"; "<="; ">="]
                           -> let ins = match o with
                                        | "+"  -> ADD::k
@@ -136,6 +147,10 @@ module CodeGenerationOpt =
                                        | _    -> failwith "CE: this case is not possible"
                              CE e1 vEnv fEnv (CE e2 vEnv fEnv ins) 
 
+       | Apply(f, es) -> let (label, _, _) = Map.find f fEnv
+                         makeCall (List.length es) label k
+                         |> CEs es vEnv fEnv
+
        | _                -> failwith "CE: not supported yet"
        
    and CEs es vEnv fEnv k = 
@@ -148,20 +163,20 @@ module CodeGenerationOpt =
       match acc with 
       | AVar x         -> match Map.find x (fst vEnv) with
                           | (GloVar addr,_) -> addCST addr k
-                          | (LocVar addr,_) -> failwith "CA: Local variables not supported yet"
+                          | (LocVar addr,_) -> GETBP :: addCST addr (ADD :: k)
       | AIndex(acc, e) -> failwith "CA: array indexing not supported yet"
       | ADeref e       -> failwith "CA: pointer dereferencing not supported yet"
 
    
 (* Bind declared variable in env and generate code to allocate it: *)  
-   let allocate (kind : int -> Var) (typ, x) (vEnv : varEnv)  =
+   let allocate (kind : int -> Var) (typ, x) (vEnv : varEnv) k  =
     let (env, fdepth) = vEnv 
     match typ with
     | ATyp (ATyp _, _) -> failwith "allocate: array of arrays not permitted"
     | ATyp (t, Some i) -> failwith "allocate: array not supported yet"
     | _ -> 
       let newEnv = (Map.add x (kind fdepth, typ) env, fdepth+1)
-      let code = [INCSP 1]
+      let code = addINCSP 1 k
       (newEnv, code)
 
                       
@@ -176,6 +191,12 @@ module CodeGenerationOpt =
 
        | Block([],stms)   -> CSs stms vEnv fEnv k
 
+       | Block(decs, stms) -> let (vEnv, code) = List.fold (fun (env, c) (VarDec(t,x)) -> let (e, c') = allocate LocVar (t,x) env c
+                                                                                          (e, c')) (vEnv, []) decs
+                              code @
+                              (addINCSP (-(List.length decs)) k
+                              |> CSs stms vEnv fEnv)
+
        | Alt (GC gcs)  -> match gcs with
                           | [] -> addGOTO !Abnormalstop k
                           | _  -> let (labend, k) = addLabel k
@@ -186,6 +207,10 @@ module CodeGenerationOpt =
                           | [] -> k
                           | _  -> let labelstart = newLabel()
                                   Label labelstart :: CSGC vEnv fEnv labelstart gcs k
+
+       | Return (Some e) -> CE e vEnv fEnv (RET (snd vEnv) :: k)
+
+       | Return None     -> RET (snd vEnv - 1) :: k
 
        | _                -> failwith "CS: this statement is not supported yet"
 
@@ -209,16 +234,18 @@ module CodeGenerationOpt =
 (* Build environments for global variables and functions *)
 
    let makeGlobalEnvs decs = 
-       let rec addv decs vEnv fEnv = 
+       let rec addv decs vEnv fEnv k = 
            match decs with 
-           | []         -> (vEnv, fEnv, [])
+           | []         -> (vEnv, fEnv, k)
            | dec::decr  -> 
              match dec with
-             | VarDec (typ, var) -> let (vEnv1, code1) = allocate GloVar (typ, var) vEnv
-                                    let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv
-                                    (vEnv2, fEnv2, code1 @ code2)
-             | FunDec (tyOpt, f, xs, body) -> failwith "makeGlobalEnvs: function/procedure declarations not supported yet"
-       addv decs (Map.empty, 0) Map.empty
+             | VarDec (typ, var) -> let (vEnv1, code1) = allocate GloVar (typ, var) vEnv k
+                                    let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv code1
+                                    (vEnv2, fEnv2, code2)
+             | FunDec (tyOpt, f, xs, body) 
+                -> addv decr vEnv (Map.add f (newLabel(), tyOpt, xs) fEnv) k
+
+       addv decs (Map.empty, 0) Map.empty []
 
 (* Compile a complete micro-C program: globals, call to main, functions *)
 
@@ -226,8 +253,26 @@ module CodeGenerationOpt =
        let _ = resetLabels ()
        Abnormalstop := newLabel()
        let ((gvM,_) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
-       initCode @ CSs stms gvEnv fEnv ([STOP]    
-       @ [Label !Abnormalstop] @ List.collect (fun x -> [CSTI (int x); PRINTC]) ['E';'R';'R';'O';'R'] @ [STOP])
+       let compilefun (tyOpt, f, xs, body) =
+        let (labf, _, paras) = Map.find f fEnv
+        let (envf, fdepthf) = List.fold (fun (env, fdepth) (VarDec(t,x)) -> (Map.add x (LocVar fdepth, t) env, fdepth+1)) (gvM, 0) paras
+        let code = CS body (envf, fdepthf) fEnv
+                    (match tyOpt with
+                    | Some _ -> [GOTO !Abnormalstop]
+                    | None -> [RET (List.length paras-1)])
+        Label labf :: code
+       let functions = 
+        List.choose (function
+                     | FunDec (rTy, name, argTy, body) -> Some(compilefun(rTy, name, argTy, body))
+                     | VarDec _ -> None)
+                     decs
+       
+       let (labmain, k) = 
+           addLabel
+               (CSs stms gvEnv fEnv ([RET -1]
+               @ [Label !Abnormalstop] @ List.collect (fun x -> [CSTI (int x); PRINTC]) ['E';'R';'R';'O';'R'] @ [STOP]
+               @ List.concat functions))
+       initCode @ CALL(0, labmain):: INCSP -1:: STOP ::  k
 
 
 
