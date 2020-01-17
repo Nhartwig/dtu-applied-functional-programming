@@ -1,0 +1,6 @@
+begin
+    x : int,
+    y : ^bool;
+    x := 1;
+    y := &x
+end

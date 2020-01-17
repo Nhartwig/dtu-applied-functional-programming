@@ -1,0 +1,4 @@
+begin
+    x : ^int;
+    x := &y
+end
