@@ -107,6 +107,8 @@ module CodeGenerationOpt =
        | B b          -> addCST (if b then 1 else 0) k
        | Access acc  -> CA acc vEnv fEnv (LDI :: k) 
 
+       | Addr acc     -> CA acc vEnv fEnv k
+
        | Apply("!",[e]) -> CE e vEnv fEnv (addNOT k)
 
        | Apply("-",[e]) -> CE e vEnv fEnv (addCST 0 (SWAP:: SUB :: k))
@@ -165,7 +167,7 @@ module CodeGenerationOpt =
                           | (GloVar addr,_) -> addCST addr k
                           | (LocVar addr,_) -> GETBP :: addCST addr (ADD :: k)
       | AIndex(acc, e) -> CA acc vEnv fEnv (LDI :: (CE e vEnv fEnv (ADD :: k)))
-      | ADeref e       -> failwith "CA: pointer dereferencing not supported yet"
+      | ADeref e       -> CE e vEnv fEnv k
 
    and CAs accs vEnv fEnv k =
       match accs with
