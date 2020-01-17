@@ -25,6 +25,9 @@ module CodeGenerationOpt =
    // Abnormal stop label
    let Abnormalstop = ref ""
 
+   // Whatever out of bounds should be checked for arrays
+   let checkOUB = ref true
+
 
 (* Directly copied from Peter Sestoft   START  
    Code-generating functions that perform local optimizations *)
@@ -166,7 +169,15 @@ module CodeGenerationOpt =
       | AVar x         -> match Map.find x (fst vEnv) with
                           | (GloVar addr,_) -> addCST addr k
                           | (LocVar addr,_) -> GETBP :: addCST addr (ADD :: k)
-      | AIndex(acc, e) -> CA acc vEnv fEnv (LDI :: (CE e vEnv fEnv (ADD :: k)))
+      | AIndex(acc, e) ->   if !checkOUB then
+                                CA acc vEnv fEnv
+                                    (DUP::DUP::LDI::SUB::
+                                    CE e vEnv fEnv
+                                        (DUP::CSTI 0::LT:: IFNZRO !Abnormalstop::
+                                        SWAP::GETSP::CSTI 1::SUB::LDI::CSTI 1::ADD::LT::IFNZRO !Abnormalstop::
+                                        SWAP::LDI::SWAP::ADD::k))
+                            else
+                                CA acc vEnv fEnv (LDI :: (CE e vEnv fEnv (ADD :: k)))
       | ADeref e       -> CE e vEnv fEnv k
 
    and CAs accs vEnv fEnv k =
@@ -265,9 +276,10 @@ module CodeGenerationOpt =
 
 (* Compile a complete micro-C program: globals, call to main, functions *)
 
-   let CP (P(decs,stms)) = 
+   let CP checkOutOfBounds (P(decs,stms)) = 
        let _ = resetLabels ()
        Abnormalstop := newLabel()
+       checkOUB := checkOutOfBounds
        let ((gvM,_) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
        let compilefun (tyOpt, f, xs, body) =
         let (labf, _, paras) = Map.find f fEnv

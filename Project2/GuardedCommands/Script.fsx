@@ -37,7 +37,7 @@ let ex0Tree = parseFromFile "gcs/Ex0.gc";;
 
 let _ = tcP ex0Tree;;
 
-let ex0Code = CPOpt ex0Tree;; 
+let ex0Code = CPOpt true ex0Tree;; 
 
 let _ = goOpt ex0Tree;;
 
