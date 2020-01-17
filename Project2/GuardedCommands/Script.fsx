@@ -191,3 +191,6 @@ List.iter execOpt ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/MAsg4.gc
 List.iter execOpt ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"; "gcs/P1IntProcedureType.gc" ];;
 
 List.iter execOpt ["gcs/Po1.gc"; "gcs/Po2.gc"; "gcs/Po3.gc"; "gcs/Po4.gc"; "gcs/Po5.gc"; "gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/par2.gc"];;
+
+// execute n-queens
+execOpt "gcs/nqueens.gc";;
