@@ -194,3 +194,6 @@ List.iter execOpt ["gcs/Po1.gc"; "gcs/Po2.gc"; "gcs/Po3.gc"; "gcs/Po4.gc"; "gcs/
 
 // execute n-queens
 execOpt "gcs/nqueens.gc";;
+
+let prints = getRunPrints "gcs/nqueens.gc";;
+

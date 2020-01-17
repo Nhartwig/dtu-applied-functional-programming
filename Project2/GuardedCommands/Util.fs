@@ -59,6 +59,9 @@ module CompilerUtil =
 /// go p compiles and runs an abstract syntax for a program  
    let go p = run(code2ints(CodeGeneration.CP true p))
 
+   let getRP p = runP(code2ints(CodeGeneration.CP true p))
+   let getRunPrints filename = (parseFromFile filename) |> getRP
+
 /// goOpt p compile and runs an abstract syntax for a program showing a program trace  
    let goTrace p = VirtualMachine.runTrace(code2ints(CodeGeneration.CP true p))
 
