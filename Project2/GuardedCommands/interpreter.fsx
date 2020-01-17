@@ -71,17 +71,17 @@ module Interpreter =
     For global variables, store locations are reserved; for global functions, 
     just add to global function environment. 
     *)
-    let initEnvandStore (decList: Dec list) : locEnv * funEnv * store =
+    let initEnvandStore (decs: Dec list) = //(decs: Dec list) : locEnv * funEnv * store =
         let rec addv decs locEnv funEnv store =
             match decs with 
             | [] -> (locEnv, funEnv, store)
             | VarDec(typ, x)::decr -> let (locEnv1, sto1) = allocate (typ, x) locEnv store
                                       addv decr locEnv1 funEnv sto1
-            | FunDec(_, f, xs, body)::decr -> addv decr locEnv ((f, (xs, body))::funEnv) store
-        addv decList (Map.empty, 0) [] (emptyStore:Map.empty)                               
+            | FunDec(_, f, xs, body)::decr -> addv decr locEnv ((f, (xs, body))::funEnv) store         
+        addv decs ([], 0) [] emptyStore             
 /////////////////////////////////////////////////////////////////////
   
-
+(*Executing Statements*)
 
 /////////////////////////////////////////////////////////////////////
 
