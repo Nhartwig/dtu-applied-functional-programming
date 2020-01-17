@@ -1,0 +1,7 @@
+begin
+    x : ^int,
+    y : bool,
+    function f () : ^int = return &y;
+    y := true;
+    x := f()
+end

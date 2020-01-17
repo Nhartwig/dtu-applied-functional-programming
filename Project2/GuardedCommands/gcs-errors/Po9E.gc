@@ -1,0 +1,4 @@
+begin
+    x : int;
+    x := (0)^
+end
