@@ -167,6 +167,11 @@ module CodeGenerationOpt =
       | AIndex(acc, e) -> CA acc vEnv fEnv (LDI :: (CE e vEnv fEnv (ADD :: k)))
       | ADeref e       -> failwith "CA: pointer dereferencing not supported yet"
 
+   and CAs accs vEnv fEnv k =
+      match accs with
+      | []         -> k
+      | acc::accs' -> CA acc vEnv fEnv (CAs accs' vEnv fEnv k)
+
    
 (* Bind declared variable in env and generate code to allocate it: *)  
    let allocate (kind : int -> Var) (typ, x) (vEnv : varEnv)  =
@@ -189,9 +194,11 @@ module CodeGenerationOpt =
        match stm with
        | PrintLn e        -> CE e vEnv fEnv (PRINTI:: INCSP -1 :: k) 
 
-       | Ass(acc,e)       -> CA (List.head acc) vEnv fEnv (CE (List.head e) vEnv fEnv (STI:: addINCSP -1 k))
-                             //failwith "removed assignment since it doesn't work with multi assignment, TODO fix"
-                             //CA acc vEnv fEnv (CE e vEnv fEnv (STI:: addINCSP -1 k))
+       | Ass(accs,es)     -> let len = List.length accs
+                             let k = addINCSP (-len*2) k
+                             let k = List.fold (fun s i -> GETSP::CSTI (len-i-1)::SUB::LDI::GETSP::CSTI(len+len-i)::SUB::LDI::STI::INCSP -1::s) k [0 .. len-1]
+                             let k = CAs accs vEnv fEnv k
+                             CEs es vEnv fEnv k
 
        | Block([],stms)   -> CSs stms vEnv fEnv k
 
@@ -238,19 +245,18 @@ module CodeGenerationOpt =
 (* Build environments for global variables and functions *)
 
    let makeGlobalEnvs decs = 
-       let decs = List.rev decs
-       let rec addv decs vEnv fEnv k = 
+       let rec addv decs vEnv fEnv = 
            match decs with 
-           | []         -> (vEnv, fEnv, k)
+           | []         -> (vEnv, fEnv, [])
            | dec::decr  -> 
              match dec with
              | VarDec (typ, var) -> let (vEnv1, code1) = allocate GloVar (typ, var) vEnv
-                                    let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv code1
+                                    let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv
                                     (vEnv2, fEnv2, code1 @ code2)
              | FunDec (tyOpt, f, xs, body) 
-                -> addv decr vEnv (Map.add f (newLabel(), tyOpt, xs) fEnv) k
+                -> addv decr vEnv (Map.add f (newLabel(), tyOpt, xs) fEnv)
 
-       addv decs (Map.empty, 0) Map.empty []
+       addv decs (Map.empty, 0) Map.empty
 
 (* Compile a complete micro-C program: globals, call to main, functions *)
 

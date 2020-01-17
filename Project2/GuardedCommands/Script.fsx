@@ -167,6 +167,14 @@ List.iter execOpt ["gcs/Ex1.gc"; "gcs/Ex2.gc";"gcs/Ex3.gc"; "gcs/Ex4.gc"; "gcs/E
 List.iter execOpt ["gcs/Ex7.gc"; "gcs/fact.gc"; "gcs/factRec.gc"; "gcs/factCBV.gc"];;
 
 List.iter execOpt ["gcs/A0.gc"; "gcs/A1.gc"; "gcs/A2.gc"; "gcs/A3.gc"];;
+
+List.iter execOpt ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/MAsg4.gc";
+                 "gcs/MAIntTypeIntTypeAssignments.gc";   
+                    "gcs/MACorrectTypeToMultiple.gc"; 
+                    "gcs/MACorrectSizeEitherSide1.gc"; 
+                    "gcs/MACorrectSizeEitherSide2.gc";
+                    "gcs/MAAssignmentToTwoInts#1.gc"; 
+                    "gcs/MAAssignmentToTwoInts#2.gc" ]
 (*
 // Test of programs covered by the fifth task using optimized compilation (Section 8.2):
 List.iter execOpt ["par1.gc"; "factImpPTyp.gc"; "QuickSortV2.gc"; "par2.gc"];;
