@@ -5,3 +5,4 @@ Parser.fs
 Parser.fsi
 Parser.fsyacc.output
 PersonalSettings.fsx
+homemade.ps
