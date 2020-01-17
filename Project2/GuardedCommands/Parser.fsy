@@ -73,6 +73,7 @@ DecList:
 
 Access:
   | Access CARAT                      { ADeref ( Access $1) }
+  | LP Exp RP CARAT                   { ADeref $2 }
   | Access LSP Exp RSP                { AIndex( $1, $3) }
   | NAME                              { AVar $1 }
 

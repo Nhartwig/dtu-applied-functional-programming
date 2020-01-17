@@ -157,7 +157,7 @@ Testing.test [  (0, "gcs-errors/P1WrongProcedureType.gc");
 |> Testing.hideExnMsg |> Testing.failTC "Procedure"
 
 // Test of programs covered by the fifth task (Section 7.4):
-List.iter exec ["gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/par2.gc"];;
+List.iter exec ["gcs/Po1.gc"; "gcs/Po2.gc"; "gcs/Po3.gc"; "gcs/Po4.gc"; "gcs/Po5.gc"; "gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/par2.gc"];;
 
 Testing.test [ (0, "gcs-errors/Po1E.gc");
                (0, "gcs-errors/Po2E.gc");
