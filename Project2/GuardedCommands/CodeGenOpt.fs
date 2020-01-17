@@ -280,25 +280,24 @@ module CodeGenerationOpt =
        Abnormalstop := newLabel()
        checkOUB := checkOutOfBounds
        let ((gvM,_) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
-       let compilefun (tyOpt, f, xs, body) =
+       let compilefun (tyOpt, f, xs, body) k =
         let (labf, _, paras) = Map.find f fEnv
         let (envf, fdepthf) = List.fold (fun (env, fdepth) (VarDec(t,x)) -> (Map.add x (LocVar fdepth, t) env, fdepth+1)) (gvM, 0) paras
         let code = CS body (envf, fdepthf) fEnv
-                    (match tyOpt with
-                    | Some _ -> [GOTO !Abnormalstop]
-                    | None -> [RET (List.length paras-1)])
+                    ((match tyOpt with
+                     | Some _ -> GOTO !Abnormalstop
+                     | None -> RET (List.length paras-1)) :: k)
         Label labf :: code
        let functions = 
-        List.choose (function
-                     | FunDec (rTy, name, argTy, body) -> Some(compilefun(rTy, name, argTy, body))
-                     | VarDec _ -> None)
-                     decs
-       
-       let (labmain, k) = 
-           addLabel
-               (CSs stms gvEnv fEnv ([RET -1]
-               @ [Label !Abnormalstop] @ List.collect (fun x -> [CSTI (int x); PRINTC]) ['E';'R';'R';'O';'R'] @ [STOP]
-               @ List.concat functions))
+        List.fold (fun s dec ->
+                     match dec with
+                     | FunDec (rTy, name, argTy, body) -> compilefun(rTy, name, argTy, body) s
+                     | VarDec _ -> s)
+                   [] decs
+
+       let k = RET -1::Label !Abnormalstop:: List.fold (fun s x -> CSTI (int x)::PRINTC::s) (STOP::functions) (List.rev ['E';'R';'R';'O';'R'])
+
+       let (labmain, k) = addLabel (CSs stms gvEnv fEnv k)
        initCode (CALL(0, labmain):: INCSP -1:: STOP ::  k)
 
 
