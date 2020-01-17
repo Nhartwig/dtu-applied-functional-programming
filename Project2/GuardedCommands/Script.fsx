@@ -37,11 +37,11 @@ let ex0Tree = parseFromFile "gcs/Ex0.gc";;
 
 let _ = tcP ex0Tree;;
 
-let ex0Code = CP true ex0Tree;; 
+let ex0Code = CPOpt ex0Tree;; 
 
-let _ = go ex0Tree;;
+let _ = goOpt ex0Tree;;
 
-let _ = goTrace ex0Tree;;
+let _ = goOptTrace ex0Tree;;
 
 
 // Parsing of Ex1.gc
@@ -78,11 +78,11 @@ let fail = Testing.test [   (0, "gcs-errors/Ex0.gc");
                             (0, "gcs-errors/while0.gc"); 
                             (0, "gcs-errors/while1.gc"); 
                             (0, "gcs-errors/while2.gc") ]
-fail |> Testing.hideExnMsg               
+fail |> Testing.hideExnMsg;;
 
 let pass = Testing.test [   (0, "gcs/Ex0.gc"); 
                             (0, "gcs/Ex1.gc");   
-                            (0, "gcs/Ex1.gc");  ]
+                            (0, "gcs/Ex1.gc");  ];;
 
 // Test of programs covered by the first task (Section 3.7):
 List.iter exec ["gcs/Ex1.gc"; "gcs/Ex2.gc";"gcs/Ex3.gc"; "gcs/Ex4.gc"; "gcs/Ex5.gc"; "gcs/Ex6.gc"; "gcs/Skip.gc"];;
@@ -134,18 +134,18 @@ List.iter exec ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/MAsg4.gc";
                     "gcs/MACorrectSizeEitherSide1.gc"; 
                     "gcs/MACorrectSizeEitherSide2.gc";
                     "gcs/MAAssignmentToTwoInts#1.gc"; 
-                    "gcs/MAAssignmentToTwoInts#2.gc" ]
+                    "gcs/MAAssignmentToTwoInts#2.gc" ];;
 
 Testing.test [  (0, "gcs-errors/MAWrongTypeToOne.gc");   
                 (0, "gcs-errors/MAWrongTypeToMultiple.gc"); 
                 (0, "gcs-errors/MAWrongSizeEitherSide1.gc"); 
                 (0, "gcs-errors/MAWrongSizeEitherSide2.gc"); ]
                 
-|> Testing.hideExnMsg  |> Testing.failTC "Multiple Assignments"        
+|> Testing.hideExnMsg  |> Testing.failTC "Multiple Assignments";; 
 
 
 // Test of programs covered by the fifth task (Section 6.1):
-List.iter exec ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"; "gcs/P1IntProcedureType.gc" ]
+List.iter exec ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"; "gcs/P1IntProcedureType.gc" ];;
 
 Testing.test [  (0, "gcs-errors/P1WrongProcedureType.gc");
                 (0, "gcs-errors/P2WrongProcedureType.gc");
@@ -160,11 +160,22 @@ Testing.test [  (0, "gcs-errors/P1WrongProcedureType.gc");
 List.iter exec ["gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/par2.gc"];;
 
 
-(*
-// Test of programs covered by the fifth task using optimized compilation (Section 8.2):
-List.iter execOpt ["gcs/Ex1.gc"; "gcs/Ex2.gc"];;
 
 // Test of programs covered by the fifth task using optimized compilation (Section 8.2):
-List.iter execOpt ["par1.gc"; "factImpPTyp.gc"; "QuickSortV2.gc"; "par2.gc"];;
+List.iter execOpt ["gcs/Ex1.gc"; "gcs/Ex2.gc";"gcs/Ex3.gc"; "gcs/Ex4.gc"; "gcs/Ex5.gc"; "gcs/Ex6.gc"; "gcs/Skip.gc"];;
 
-*)
+List.iter execOpt ["gcs/Ex7.gc"; "gcs/fact.gc"; "gcs/factRec.gc"; "gcs/factCBV.gc"];;
+
+List.iter execOpt ["gcs/A0.gc"; "gcs/A1.gc"; "gcs/A2.gc"; "gcs/A3.gc"];;
+
+List.iter execOpt ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/MAsg4.gc";
+                 "gcs/MAIntTypeIntTypeAssignments.gc";   
+                    "gcs/MACorrectTypeToMultiple.gc"; 
+                    "gcs/MACorrectSizeEitherSide1.gc"; 
+                    "gcs/MACorrectSizeEitherSide2.gc";
+                    "gcs/MAAssignmentToTwoInts#1.gc"; 
+                    "gcs/MAAssignmentToTwoInts#2.gc" ];;
+
+List.iter execOpt ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"; "gcs/P1IntProcedureType.gc" ];;
+
+List.iter execOpt ["gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/par2.gc"];;
