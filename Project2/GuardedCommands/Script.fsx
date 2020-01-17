@@ -1,8 +1,8 @@
 ﻿(* Take the three links to where you store your packages and paste into a file called "PersonalSettings.fsx"
-It should look something like this
+It should look something like this:
 #r @"<project>\GuardedCommands\packages\FsLexYacc.Runtime.7.0.6\lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid10+MonoTouch10\FsLexYacc.Runtime.dll";
 #r @"<project>\GuardedCommands\bin\Debug\Machine.dll";
-#r @"<project>\GuardedCommands\bin\Debug\VirtualMachine.dll";
+#load "VirtualMachine.fs";
 *)
 
 #read "PersonalSettings.fsx"
@@ -194,3 +194,6 @@ List.iter execOpt ["gcs/Po1.gc"; "gcs/Po2.gc"; "gcs/Po3.gc"; "gcs/Po4.gc"; "gcs/
 
 // execute n-queens
 execOpt "gcs/nqueens.gc";;
+
+let prints = getRunPrints "gcs/nqueens.gc";;
+
