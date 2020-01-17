@@ -37,11 +37,11 @@ let ex0Tree = parseFromFile "gcs/Ex0.gc";;
 
 let _ = tcP ex0Tree;;
 
-let ex0Code = CP true ex0Tree;; 
+let ex0Code = CPOpt ex0Tree;; 
 
-let _ = go ex0Tree;;
+let _ = goOpt ex0Tree;;
 
-let _ = goTrace ex0Tree;;
+let _ = goOptTrace ex0Tree;;
 
 
 // Parsing of Ex1.gc
@@ -163,6 +163,8 @@ List.iter exec ["gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/
 
 // Test of programs covered by the fifth task using optimized compilation (Section 8.2):
 List.iter execOpt ["gcs/Ex1.gc"; "gcs/Ex2.gc";"gcs/Ex3.gc"; "gcs/Ex4.gc"; "gcs/Ex5.gc"; "gcs/Ex6.gc"; "gcs/Skip.gc"];;
+
+List.iter execOpt ["gcs/Ex7.gc"; "gcs/fact.gc"; "gcs/factRec.gc"; "gcs/factCBV.gc"];;
 (*
 // Test of programs covered by the fifth task using optimized compilation (Section 8.2):
 List.iter execOpt ["par1.gc"; "factImpPTyp.gc"; "QuickSortV2.gc"; "par2.gc"];;
