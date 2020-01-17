@@ -196,7 +196,7 @@ module CodeGenerationOpt =
 
        | Ass(accs,es)     -> let len = List.length accs
                              let k = addINCSP (-len*2) k
-                             let k = List.fold (fun s i -> GETSP::CSTI (len-i-1)::SUB::LDI::GETSP::CSTI(len+len-i)::SUB::LDI::STI::INCSP -1::s) k [0 .. len-1]
+                             let k = List.fold (fun s i -> GETSP::addCST (len-i-1) (SUB::LDI::GETSP::addCST (len+len-i) (SUB::LDI::STI::addINCSP -1 s)) ) k [0 .. len-1]
                              let k = CAs accs vEnv fEnv k
                              CEs es vEnv fEnv k
 
@@ -222,6 +222,9 @@ module CodeGenerationOpt =
        | Return (Some e) -> CE e vEnv fEnv (RET (snd vEnv) :: k)
 
        | Return None     -> RET (snd vEnv - 1) :: k
+
+       | Call(f, es) -> let (label, _, _) = Map.find f fEnv
+                        CEs es vEnv fEnv (makeCall (List.length es) label (addINCSP -1 k))
 
        | _                -> failwith "CS: this statement is not supported yet"
 

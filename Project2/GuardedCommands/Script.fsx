@@ -175,6 +175,8 @@ List.iter execOpt ["gcs/MAsg1.gc"; "gcs/MAsg2.gc"; "gcs/MAsg3.gc"; "gcs/MAsg4.gc
                     "gcs/MACorrectSizeEitherSide2.gc";
                     "gcs/MAAssignmentToTwoInts#1.gc"; 
                     "gcs/MAAssignmentToTwoInts#2.gc" ]
+
+List.iter execOpt ["gcs/A4.gc"; "gcs/Swap.gc"; "gcs/QuickSortV1.gc"; "gcs/P1IntProcedureType.gc" ]
 (*
 // Test of programs covered by the fifth task using optimized compilation (Section 8.2):
 List.iter execOpt ["par1.gc"; "factImpPTyp.gc"; "QuickSortV2.gc"; "par2.gc"];;
