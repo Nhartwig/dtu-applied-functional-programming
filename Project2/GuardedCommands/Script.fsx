@@ -16,6 +16,7 @@ It should look something like this:
 #load "CodeGenOpt.fs"
 #load "Util.fs"
 #load "Testing.fsx"
+#load "interpreter.fsx"
 
 open GuardedCommands.Util
 open GuardedCommands.Frontend.TypeCheck
@@ -28,9 +29,10 @@ open CompilerUtil
 open Machine
 open VirtualMachine
 open Testing
+open Interpreter
 
 System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__;;
-
+(*
 // The Ex0.gc example:
 
 let ex0Tree = parseFromFile "gcs/Ex0.gc";;
@@ -196,4 +198,8 @@ List.iter execOpt ["gcs/Po1.gc"; "gcs/Po2.gc"; "gcs/Po3.gc"; "gcs/Po4.gc"; "gcs/
 execOpt "gcs/nqueens.gc";;
 
 let prints = getRunPrints "gcs/nqueens.gc";;
+*)
+// generate AST from file
+let Ex0Prog = parseFromFile "gcs/Ex0.gc"
+let test = Interpreter.run Ex0Prog []
 

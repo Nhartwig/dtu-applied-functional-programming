@@ -59,7 +59,7 @@ module Interpreter =
     (* Allocate variable (int or pointer array): extend environment 
     so that it maps variable to next available store location, and initialize store location(s).
     *)                           
-    let rec allocate (Typ, x) (env0, nextloc) sto0: locEnv*store = 
+    let rec allocate (Typ, x) (env0, nextloc) sto0 : locEnv*store = 
         let (nextloc1, v, sto1) = 
             match Typ with
             | ATyp (t, Some i) -> (nextloc+i, nextloc, initSto nextloc i sto0)
@@ -74,11 +74,11 @@ module Interpreter =
     let initEnvandStore (decs: Dec list) = //(decs: Dec list) : locEnv * funEnv * store =
         let rec addv decs locEnv funEnv store =
             match decs with 
-            | [] -> (locEnv, funEnv, store)
+            | [] -> locEnv, funEnv, store
             | VarDec(typ, x)::decr -> let (locEnv1, sto1) = allocate (typ, x) locEnv store
                                       addv decr locEnv1 funEnv sto1
             | FunDec(_, f, xs, body)::decr -> addv decr locEnv ((f, (xs, body))::funEnv) store         
-        addv decs ([], 0) [] emptyStore             
+        addv decs ([], 0) [] emptyStore            
 /////////////////////////////////////////////////////////////////////
   
 (*Executing Statements*)
@@ -214,13 +214,20 @@ module Interpreter =
         let store3 = exec fBody fBodyEnv gloEnv store2 
         (-111, store3)
 
+// test whether you need array out-of-bounds checking
+
+(*
+    Interpret a complete GC program by initializing 
+    store and global environments, then invoking on Begin function
+*)
     let run (P(decs, stmts)) vs = 
-        let ((varEnv, nextLoc), funEnv, store0) = initEnvandStore (decs)
-        let compileFun (tyOpt, f, xs, body) = 
-        let code = exec () funEnv body
-        let (mainParams, mainBody) = lookup funEnv "main"
-        let (mainBodyEnv, store1) = bindVars (List.map snd mainParams) vs (varEnv, nextloc) store0
-        exec mainBody mainBodyEnv (varEnv, funEnv) store1
+        let ((varEnv, nextloc), (funEnv), store0) = initEnvandStore decs
+        let (name,fxnEnv)::fxnEnvList = funEnv
+        let fn = (((name,fxnEnv)::fxnEnvList) : ((string * (('a * string) list * 'b)) list))
+        let ((mainParams : list<('a*string)>), mainBody) = lookup fn "begin"
+        let (mainBodyEnv, store1) = 
+            bindVars (List.map snd (mainParams)) vs (varEnv, nextloc) store0
+        exec mainBody mainBodyEnv ((varEnv, fn) : gloEnv) store1
 
 
-  
+  // exec stmt (locEnv:locEnv) (gloEnv:gloEnv) (store:store) : store =
