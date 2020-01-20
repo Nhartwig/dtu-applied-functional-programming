@@ -197,3 +197,8 @@ execOpt "gcs/nqueens.gc";;
 
 let prints = getRunPrints "gcs/nqueens.gc";;
 
+// Code for comparison
+let comp1Tree = parseFromFile "gcs/Ex7.gc";;
+let comp1C   = CP true comp1Tree;;
+let comp1Opt = CPOpt true comp1Tree;; 
+
