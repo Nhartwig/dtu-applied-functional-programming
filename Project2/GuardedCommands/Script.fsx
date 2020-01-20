@@ -202,3 +202,5 @@ let comp1Tree = parseFromFile "gcs/Ex7.gc";;
 let comp1C   = CP true comp1Tree;;
 let comp1Opt = CPOpt true comp1Tree;; 
 
+// execute array out of bounds example:
+execOpt "gcs/AOUB.gc";;
