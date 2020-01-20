@@ -215,3 +215,11 @@ let _ = List.map Interpreter.run progs2
 
 let progs3 = List.map parseFromFile ["gcs/Po1.gc"; "gcs/Po2.gc"; "gcs/Po3.gc"; "gcs/Po4.gc"; "gcs/Po5.gc"; "gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/par2.gc"];;
 let _ = List.map Interpreter.run progs3 
+
+// Code for comparison
+let comp1Tree = parseFromFile "gcs/Ex7.gc";;
+let comp1C   = CP true comp1Tree;;
+let comp1Opt = CPOpt true comp1Tree;; 
+
+// execute array out of bounds example:
+execOpt "gcs/AOUB.gc";;
