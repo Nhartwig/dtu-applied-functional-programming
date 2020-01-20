@@ -32,7 +32,7 @@ open Testing
 open Interpreter
 
 System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__;;
-(*
+
 // The Ex0.gc example:
 
 let ex0Tree = parseFromFile "gcs/Ex0.gc";;
@@ -198,8 +198,20 @@ List.iter execOpt ["gcs/Po1.gc"; "gcs/Po2.gc"; "gcs/Po3.gc"; "gcs/Po4.gc"; "gcs/
 execOpt "gcs/nqueens.gc";;
 
 let prints = getRunPrints "gcs/nqueens.gc";;
-*)
+
 // generate AST from file
-let Ex0Prog = parseFromFile "gcs/Ex0.gc"
+let Ex0Prog = parseFromFile "gcs/Ex7.gc"
 let test = Interpreter.run Ex0Prog []
 
+let progs0 = List.map parseFromFile ["gcs/Ex1.gc"; "gcs/Ex2.gc";"gcs/Ex3.gc"; "gcs/Ex4.gc"; "gcs/Ex5.gc"; "gcs/Ex6.gc"; "gcs/Skip.gc"];;
+let _ = List.map Interpreter.run progs0
+
+let progs1 = List.map parseFromFile ["gcs/Ex7.gc"; "gcs/fact.gc"; "gcs/factRec.gc"; "gcs/factCBV.gc"];;
+let _ = List.map Interpreter.run progs1
+
+
+let progs2 = List.map parseFromFile ["gcs/A0.gc"; "gcs/A1.gc"; "gcs/A2.gc"; "gcs/A3.gc"];;
+let _ = List.map Interpreter.run progs2
+
+let progs3 = List.map parseFromFile ["gcs/Po1.gc"; "gcs/Po2.gc"; "gcs/Po3.gc"; "gcs/Po4.gc"; "gcs/Po5.gc"; "gcs/par1.gc"; "gcs/factImpPTyp.gc"; "gcs/QuickSortV2.gc"; "gcs/par2.gc"];;
+let _ = List.map Interpreter.run progs3 

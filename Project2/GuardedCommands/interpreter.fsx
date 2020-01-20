@@ -97,14 +97,14 @@ module Interpreter =
 
 /////////////////////////////////////////////////////////////////////
 
-    let rec exec stmt (locEnv:locEnv) (gloEnv:gloEnv) (store:store) : store = 
+    let rec exec stmt (locEnv:locEnv) (gloEnv:gloEnv) (store:store) : ('a option) *store = 
         match stmt with
         | PrintLn e -> let (i1,store1) = (eval e locEnv gloEnv store)
-                       printf "%O" i1 
-                       store1
+                       printf "%O\n" i1 
+                       (None,store1)
         | Ass (acc, e) -> let rec loop ac ex store = 
                             match (ac,ex) with  
-                            | [],[] -> store 
+                            | [],[] -> (None,store) 
                             | (ac::accTail,ex::exTail) -> let loc1, store1 = (access ac locEnv gloEnv store) 
                                                           let res, store2 = (eval ex locEnv gloEnv store1)                      
                                                           let store' = (setSto store2 loc1 res) 
@@ -113,41 +113,58 @@ module Interpreter =
                               
         | Block([],stmts) -> let rec execBlock stmts store =
                                 match stmts with
-                                | [] -> store
-                                | stmt::stmts -> let store1 = (exec stmt locEnv gloEnv store)
-                                                 execBlock stmts store1
+                                | [] -> (None, store)
+                                | stmt::stmts -> let (i, store1) = (exec stmt locEnv gloEnv store)
+                                                 if (i<>(None)) then (i,store)
+                                                 else execBlock stmts (store1)
                              execBlock stmts store
 
         | Block(decs,stmts) ->  let rec execBlock' decs stmts store locEnv=
                                   match decs,stmts with 
-                                  | [],[] -> store                       
+                                  | [],[] -> (None, store)                       
                                   | VarDec(typ, x)::decList, stmt::stmtList -> let (locEnv1, store1) = (allocate (typ, x) locEnv store) 
-                                                                               let (store2) = exec stmt locEnv1 gloEnv store1 
-                                                                               execBlock' decList stmtList store2 locEnv1
-                                  | _, stmt::stmtList -> let (store1) = exec stmt locEnv gloEnv store
-                                                         execBlock' [] stmtList store1 locEnv
+                                                                               let (i,store2) = exec stmt locEnv1 gloEnv store1 
+                                                                               
+                                                                               if (i<>(None)) then (i,store2) 
+                                                                               else (execBlock' decList stmtList (store2) locEnv1)
+                                                                               // check if non neg value returned
+                                  | _, stmt::stmtList -> let (i,store1) = exec stmt locEnv gloEnv store
+                                                         if (i<>(None)) then (i, store1)
+                                                         else execBlock' [] stmtList (store1) locEnv
                                 execBlock' decs stmts store locEnv 
 
-        | Alt(GC (gc)) -> List.fold (fun _ gc -> (interpretGC gc locEnv gloEnv store)) emptyStore gc
+        | Alt(GC (gc)) -> List.fold (fun _ gc -> (interpretGC gc "ALT" locEnv gloEnv store)) (None, emptyStore) gc
+
+        // take the first statement true, then execute. 
+        // if none are true , then abort
 
         | Do(GC(gc)) -> match gc with
-                        | [] -> store
-                        | gcList -> List.fold (fun _ gc -> (interpretGC gc locEnv gloEnv store)) emptyStore gc
+                        | [] -> (None, store)
+                        | gcList -> List.fold (fun _ gc -> (interpretGC gc "DO" locEnv gloEnv store)) (None, emptyStore) gc
+
+        // execute first true statement, then start all over, until condition/expression is false
 
         | Return (Some e) -> let (i,store1) = eval e locEnv gloEnv store 
-                             store1
+                             (Some i, store1)
 
-        | Return None -> store
+        | Return None -> (None, store)
 
         | Call(f, es) -> let (i, store1) = callfun f es locEnv gloEnv store
-                         store1                         
+                         (None, store1)                         
 
                        
-    and interpretGC gc locEnv gloEnv store = 
+    and interpretGC gc gcArg locEnv gloEnv store = 
         match gc with
-        | (exp, stms) -> let store1 = List.fold (fun _ stm -> (exec stm locEnv gloEnv store)) emptyStore stms 
-                         let (i,store2) = eval exp locEnv gloEnv store1
-                         store2
+        | (exp, stms) when (gcArg = "ALT") ->   let (i,store1) = eval exp locEnv gloEnv (store)
+                                                if i=1 then let (i,store2) = List.fold (fun _ stm -> (exec stm locEnv gloEnv store1)) (None, emptyStore) stms                                          
+                                                            (i, store2)
+                                                else (None,store1)
+
+        | (exp, stms) when (gcArg = "DO") ->  let store1 = List.fold (fun _ stm -> (exec stm locEnv gloEnv store)) (None, emptyStore) stms 
+                                              let (i,store2) = eval exp locEnv gloEnv (snd store1)
+                                              (Some i, store2)                                  
+
+        // rewrite for DO and ALT statements                                    
 
 
     // Evaluate Expression: expr -> locEnv -> gloEnv -> store -> int*store 
@@ -223,8 +240,11 @@ module Interpreter =
         let (vs, store1) = evals es locEnv gloEnv store
         let (fBodyEnv, store2) = 
             bindVars (List.map snd paramdecs) vs (varEnv, nextloc) store
-        let store3 = exec fBody fBodyEnv gloEnv store2 
-        (-111, store3)
+        let (i,store3) = exec fBody fBodyEnv gloEnv store2 
+        match i with
+        | None -> (-1, store3)
+        | Some i -> (i, store3)
+       
 
 // test whether you need array out-of-bounds checking
 
@@ -235,15 +255,15 @@ module Interpreter =
     let run (P(decs, stmts)) vs = 
        let (varEnv, nextloc), (fEnv), store0 = initEnvandStore decs
        
-       let findFunc (fEnv:funEnv) fName = List.tryFind (fun (s,(pDecs,stm)) -> (s = fName)) fEnv  
-  
-       let (mainParams, mainBody) = lookup fEnv "begin"
+      // let (mainParams, mainBody) = lookup fEnv ""
         
-       let (mainBodyEnv, store1) = 
+       (*let (mainBodyEnv, store1) = 
             bindVars (List.map snd (mainParams)) vs (varEnv, nextloc) store0
-       exec mainBody mainBodyEnv ((varEnv, fEnv)) store1
-
-
+       *)
+       
+      // exec mainBody mainBodyEnv ((varEnv, fEnv)) store1
+       let res = List.fold (fun (_,store) stm-> exec stm (varEnv,nextloc) (varEnv,fEnv) store) (None, store0) stmts
+       res
 
 
 
