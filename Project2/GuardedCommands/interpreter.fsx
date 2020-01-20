@@ -17,7 +17,9 @@ module Interpreter =
         match env with
         | [] -> failwith (x + " not found ")
         | (y,v)::yr -> if x=y then v else lookup yr x
-    
+
+
+
     type locEnv = int env * int
 
     type paramdecs = (Typ * string) list
@@ -70,7 +72,15 @@ module Interpreter =
     Build global environment of variables and functions. 
     For global variables, store locations are reserved; for global functions, 
     just add to global function environment. 
-    *)
+    *) 
+    let rec getVarDecs' decList =
+        let rec getVarDecs (dec:Dec) paramlist= //: (Typ * string) list = 
+            match dec, paramlist with
+            | VarDec(typ,str), pList -> (typ,str)::pList
+            | FunDec(tyOpt, str, decList, stm), pList -> failwith " no func dec in func dec "
+        let res = List.collect (fun dec -> getVarDecs dec []) decList
+        res
+
     let initEnvandStore (decs: Dec list) = //(decs: Dec list) : locEnv * funEnv * store =
         let rec addv decs locEnv funEnv store =
             match decs with 
@@ -78,7 +88,9 @@ module Interpreter =
             | VarDec(typ, x)::decr -> let (locEnv1, sto1) = allocate (typ, x) locEnv store
                                       addv decr locEnv1 funEnv sto1
             | FunDec(_, f, xs, body)::decr -> addv decr locEnv ((f, (xs, body))::funEnv) store         
-        addv decs ([], 0) [] emptyStore            
+        let loc, fenv, stor = addv decs ([], 0) [] emptyStore 
+        let (funenv:funEnv) = List.map (fun (s,((dList:Dec list),(stm:Stm))) -> (s,((getVarDecs' dList),stm)) ) fenv 
+        loc,funenv,stor          
 /////////////////////////////////////////////////////////////////////
   
 (*Executing Statements*)
@@ -221,13 +233,21 @@ module Interpreter =
     store and global environments, then invoking on Begin function
 *)
     let run (P(decs, stmts)) vs = 
-        let ((varEnv, nextloc), (funEnv), store0) = initEnvandStore decs
-        let (name,fxnEnv)::fxnEnvList = funEnv
-        let fn = (((name,fxnEnv)::fxnEnvList) : ((string * (('a * string) list * 'b)) list))
-        let ((mainParams : list<('a*string)>), mainBody) = lookup fn "begin"
-        let (mainBodyEnv, store1) = 
+       let (varEnv, nextloc), (fEnv), store0 = initEnvandStore decs
+       
+       let findFunc (fEnv:funEnv) fName = List.tryFind (fun (s,(pDecs,stm)) -> (s = fName)) fEnv  
+  
+       let (mainParams, mainBody) = lookup fEnv "begin"
+        
+       let (mainBodyEnv, store1) = 
             bindVars (List.map snd (mainParams)) vs (varEnv, nextloc) store0
-        exec mainBody mainBodyEnv ((varEnv, fn) : gloEnv) store1
+       exec mainBody mainBodyEnv ((varEnv, fEnv)) store1
 
 
-  // exec stmt (locEnv:locEnv) (gloEnv:gloEnv) (store:store) : store =
+
+
+
+        //let (name,fxnEnv)::fxnEnvList = funEnv
+       // let fn = (((name,fxnEnv)::fxnEnvList) : ((string * (('a * string) list * 'b)) list))
+
+  // exec stmt (locEnv:locEnv) (gloEnv:gloEnv) (store:store) : store = 
