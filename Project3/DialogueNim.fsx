@@ -9,6 +9,8 @@ open System.Drawing
 open GameLogic
 #r "AI.dll"
 open AI
+#r "GUI.dll"
+//open GUI
 
 // Game logic
 type Player = Player | PC
@@ -37,24 +39,6 @@ type AsyncEventQueue<'T>() =
         Async.FromContinuations (fun (cont,econt,ccont) -> 
             tryListen cont)
 
-
-// The window part
-let window =
-  new Form(Text="Nim", Size=Size(500,200))
-
-let randomButton =
-    new Button(Location=Point(10,10),Size=Size(235,25), Text="Random")
-
-let loadButton =
-    new Button(Location=Point(245,10),Size=Size(235,25), Text= "Load")
-
-let disable bs = 
-    for b in [randomButton;loadButton] do 
-        b.Enabled  <- true
-    for (b:Button) in bs do 
-        b.Enabled  <- false
-
-
 // An enumeration of the possible events 
 type Message =
     // Input
@@ -77,7 +61,7 @@ type Message =
 let ev = AsyncEventQueue()
 let rec init() =
     async {
-        disable []
+        GUI.init()
 
         let! msg = ev.Receive()
         match msg with
@@ -87,6 +71,8 @@ let rec init() =
     }
 and generatingRandom() =
     async {
+
+        GUI.generatingRandom()
 
         Async.StartWithContinuations
             (async {return randomGame 23},
@@ -103,6 +89,8 @@ and generatingRandom() =
 and getGame(url) =
     async {
 
+        GUI.getGame()
+
         Async.StartWithContinuations
             (async {return getOnlineGame url},
              (fun game -> ev.Post (GameReady game)),
@@ -118,6 +106,8 @@ and getGame(url) =
 and ready (game) =
     async {
 
+        GUI.ready(game)
+
         let! msg = ev.Receive()
         match msg with
         | Start Player -> return! inProgressP(game)
@@ -127,6 +117,8 @@ and ready (game) =
     }
 and inProgressC (game) =
     async {
+
+        GUI.inProgressC(game)
 
         Async.StartWithContinuations
             (async {return chooseMove game},
@@ -142,6 +134,8 @@ and inProgressC (game) =
 and inProgressP (game) =
     async {
 
+        GUI.inProgressP(game)
+
         let! msg = ev.Receive()
         match msg with
         | Move (n,i) -> return! moving n i Player game
@@ -149,6 +143,9 @@ and inProgressP (game) =
     }
 and moving n i player game =
     async {
+
+        GUI.moving(game)
+
         use ts = new CancellationTokenSource()
 
         Async.StartWithContinuations
@@ -175,6 +172,10 @@ and moving n i player game =
 and finish (player) =
     async {
 
+        GUI.finish(match player with
+                   | Player -> GUI.Player
+                   | PC -> GUI.PC)
+
         let! msg = ev.Receive()
         match msg with
         | Restart -> return! init()
@@ -182,12 +183,17 @@ and finish (player) =
     }
     
 // Initialization
-window.Controls.Add randomButton
-window.Controls.Add loadButton
-
-randomButton.Click.Add (fun _ -> ev.Post Random)
-loadButton.Click.Add   (fun _ -> ev.Post (Load "www.google.dk"))
+GUI.initialize()
+GUI.randomGame (fun _ -> ev.Post Random)
+GUI.loadGame (fun s -> ev.Post (Load s))
+GUI.startGame (fun p _ -> match p with
+                          | GUI.Player -> ev.Post (Start Player)
+                          | GUI.PC -> ev.Post (Start PC))
+GUI.chooseMove (fun (n,i) -> ev.Post (Move (n,i)))
+GUI.cancel (fun _ -> ev.Post (Cancel))
+GUI.restart (fun _ -> ev.Post (Restart))
 
 // Start
 Async.StartImmediate(init())
-window.Show()
+GUI.init()
+GUI.show()
