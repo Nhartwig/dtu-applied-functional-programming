@@ -24,16 +24,19 @@ let disable bs =
         b.Enabled  <- false
 
 // Initialization
-let initialize() = ()
-let randomGame (f: (unit -> unit)) = ()
-let loadGame (f: (int -> unit)) = ()
+let initialize() = 
+    window.Controls.Add randomButton
+    window.Controls.Add loadButton
+    
+let randomGame (f: (unit -> unit)) = randomButton.Click.Add (fun _ -> f())
+let loadGame (f: (string -> unit)) = loadButton.Click.Add (fun _ -> f("www.google.dk"))
 let startGame (f: (Player -> Difficulty -> unit)) = ()
 let chooseMove (f: (int * int -> unit)) = ()
 let cancel (f: (unit -> unit)) = ()
 let restart (f: (unit -> unit)) = ()
 
 // Show GUI
-let show() = ()
+let show() = window.Show()
 
 // Interactions
 let taunt (s: string) = ()
