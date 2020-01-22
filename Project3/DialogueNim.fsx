@@ -189,7 +189,7 @@ GUI.loadGame (fun s -> ev.Post (Load s))
 GUI.startGame (fun p _ -> match p with
                           | GUI.Player -> ev.Post (Start Player)
                           | GUI.PC -> ev.Post (Start PC))
-GUI.chooseMove (fun (n,i) -> ev.Post (Choose (n,i)))
+GUI.chooseMove (fun (n,i) -> ev.Post (Move (n,i)))
 GUI.cancel (fun _ -> ev.Post (Cancel))
 GUI.restart (fun _ -> ev.Post (Restart))
 
