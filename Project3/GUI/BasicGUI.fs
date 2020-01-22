@@ -53,7 +53,7 @@ let randomGame (f: (unit -> unit)) = randomButton.Click.Add (fun _ -> f())
 let loadGame (f: (string -> unit)) = loadButton.Click.Add (fun _ -> f("www.google.dk"))
 let startGame (f: (Player -> Difficulty -> unit)) = startPlayer.Click.Add (fun _ -> f Player Expert)
                                                     startPC.Click.Add (fun _ -> f PC Expert)
-let chooseMove (f: (int * int -> unit)) = gameButton.Click.Add (fun _ -> f (1,1))
+let chooseMove (f: (int * int -> unit)) = gameButton.Click.Add (fun _ -> f (1,0))
 let cancel (f: (unit -> unit)) = ()
 let restart (f: (unit -> unit)) = ()
 
@@ -73,4 +73,9 @@ let inProgressC (game: Game) = gameButton.Text <- (sprintf "%A" game)
 let inProgressP (game: Game) = gameButton.Text <- (sprintf "%A" game)
                                enable [gameButton]
 let moving (game: Game) = disableAll()
-let finish (player: Player) = ()
+let finish (player: Player) = 
+    let msg = 
+        match player with
+        | Player -> "Player won!"
+        | PC     -> "PC won!"
+    MessageBox.Show(msg) |> ignore
