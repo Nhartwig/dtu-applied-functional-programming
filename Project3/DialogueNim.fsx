@@ -7,6 +7,8 @@ open System.Drawing
 
 #r "GameLogic.dll"
 open GameLogic
+#r "AI.dll"
+open AI
 
 // Game logic
 type Player = Player | PC
@@ -119,7 +121,7 @@ and inProgressC (game) =
     async {
 
         Async.StartWithContinuations
-            (async {return (1,1)},
+            (async {return chooseMove game},
              (fun (n, i) -> ev.Post (Choose (n,i))),
              (fun _ -> ev.Post(Error)),
              (fun _ -> ev.Post(Cancel)))
