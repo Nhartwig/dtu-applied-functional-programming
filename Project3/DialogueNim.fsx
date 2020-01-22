@@ -86,11 +86,17 @@ let rec init() =
         let! msg = ev.Receive()
         match msg with
         | Random   -> return! generatingRandom()
-        | Load url -> return! generatingRandom()
+        | Load url -> return! getGame(url)
         | _ -> failwith (sprintf "init() failed, no match for: %A" msg)
     }
 and generatingRandom() =
     async {
+
+        Async.StartWithContinuations
+            (async {return randomGame 23},
+             (fun game -> ev.Post (GameReady game)),
+             (fun _ -> ev.Post(Error)),
+             (fun _ -> ev.Post(Cancel)))
         
         let! msg = ev.Receive()
         match msg with
@@ -98,8 +104,14 @@ and generatingRandom() =
         | GameReady game -> return! ready(game)
         | _ -> failwith (sprintf "generatingRandom() failed, no match for: %A" msg)
     }
-and getGame() =
+and getGame(url) =
     async {
+
+        Async.StartWithContinuations
+            (async {return getOnlineGame url},
+             (fun game -> ev.Post (GameReady game)),
+             (fun _ -> ev.Post(Error)),
+             (fun _ -> ev.Post(Cancel)))
 
         let! msg = ev.Receive()
         match msg with
@@ -178,7 +190,7 @@ window.Controls.Add randomButton
 window.Controls.Add loadButton
 
 randomButton.Click.Add (fun _ -> ev.Post Random)
-loadButton.Click.Add   (fun _ -> ev.Post (Load ""))
+loadButton.Click.Add   (fun _ -> ev.Post (Load "www.google.dk"))
 
 // Start
 Async.StartImmediate(init())
