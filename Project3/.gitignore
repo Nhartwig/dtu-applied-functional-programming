@@ -3,3 +3,4 @@ DialogueProgram.fsx
 FSharp.Core.dll
 GameLogic.dll
 AI.dll
+GUI.dll
