@@ -1,0 +1,1 @@
+fsharpc -a GameLogic/GameLogic.fsi GameLogic/GameLogic.fs
