@@ -5,7 +5,7 @@ type Difficulty = Novice | Intermediate | Expert
 // Initialization
 val initialize : unit -> unit
 val randomGame : (unit -> unit) -> unit
-val loadGame : (int -> unit) -> unit
+val loadGame : (string -> unit) -> unit
 val startGame : (Player -> Difficulty -> unit) -> unit
 val chooseMove : (int * int -> unit) -> unit
 val cancel : (unit -> unit) -> unit
