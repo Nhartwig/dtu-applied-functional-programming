@@ -5,7 +5,7 @@ open System.Threading
 open System.Windows.Forms 
 open System.Drawing 
 
-#r "GameLogic"
+#r "GameLogic.dll"
 open GameLogic
 
 // Game logic
