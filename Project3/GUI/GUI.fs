@@ -67,7 +67,8 @@ let createButtons =
     let seedButton = new Button(Name="seedButton",MinimumSize=Size(150,50),MaximumSize=Size(150,50),Text="Webpage-Seeded")
     let startButton = new Button(Name="startButton",MinimumSize=Size(100,50),MaximumSize=Size(100,50),Text="Start Game!")
     let quitButton = new Button(Name="quitButton",MinimumSize=Size(100,50),MaximumSize=Size(100,50),Text="Quit Game ;(")
-    [gameButton; randomButton; seedButton; startButton; quitButton]
+    let restartButton = new Button(Name="restartButton",MinimumSize=Size(100,50),MaximumSize=Size(100,50),Text="Restart Game")
+    [gameButton; randomButton; seedButton; startButton; quitButton; restartButton]
 
 let createWindow str x y = 
     match str, x, y with
@@ -78,13 +79,13 @@ let createWindow str x y =
 let buttonList = createButtons
 
 let addButtons (window:Form) (buttons: Button list) = 
-    let flp = new FlowLayoutPanel(Name="buttonPanel", AutoSize=true, Location=Point(200,100), FlowDirection = FlowDirection.LeftToRight)
+    let flp = new FlowLayoutPanel(Name="buttonPanel", AutoSize=true, Location=Point(100,100), FlowDirection = FlowDirection.LeftToRight)
     for i in buttons do
         flp.Controls.Add i
     flp 
     //List.fold (fun (window:Form) btn -> (window.Controls.Add btn); window) window buttons
 
-let controlsMap = Map.ofList (List.zip ["gameButton"; "randomButton";"seedButton"; "startButton";"quitButton"] (buttonList))
+let controlsMap = Map.ofList (List.zip ["gameButton"; "randomButton";"seedButton"; "startButton";"quitButton"; "restartButton"] (buttonList))
 
 let playerRadios = createPlayerRadios
 
@@ -129,7 +130,7 @@ let initialize() =
     for i in playerRadios do
         playerPanel.Controls.Add i
     
-    let radioPanel = new FlowLayoutPanel(Name="radioPanel",AutoSize=true, Location=Point(200,200),FlowDirection = FlowDirection.LeftToRight)
+    let radioPanel = new FlowLayoutPanel(Name="radioPanel",AutoSize=true, Location=Point(100,200),FlowDirection = FlowDirection.LeftToRight)
     radioPanel.Controls.Add difficultyPanel
     radioPanel.Controls.Add playerPanel
    
@@ -139,12 +140,12 @@ let initialize() =
 
 let randomGame (func: (unit-> unit)) = (controlsMap.Item "randomButton").Click.Add (fun _ -> func())
 
-let loadGame (func:(string-> unit)) = (controlsMap.Item "seedButton").Click.Add (fun _ -> func("www.google.com")) 
+let loadGame (func:(string-> unit)) = (controlsMap.Item "seedButton").Click.Add (fun _ -> func("https://www.google.dk")) 
 
 let startGame (func: (Player -> Difficulty -> unit)) = 
     let p = (getPlayer playerRadios)
-    //let diff = (getDifficulty difficultyRadios)
-    (controlsMap.Item "startButton").Click.Add (fun _ -> func Player.Player Difficulty.Expert)
+    let diff = (getDifficulty difficultyRadios)
+    (controlsMap.Item "startButton").Click.Add (fun _ -> func p diff)
     ()
 
 // Need to implement more comprehensive choosing function here
@@ -182,9 +183,11 @@ let disableAll() =
     disableRadios playerRadios |> ignore
     ()
 
+// val cancel : (unit -> unit) -> unit
 let cancel (func:(unit -> unit)) = (controlsMap.Item "quitButton").Click.Add (fun _ -> func())
 
-let restart (func:(unit->unit)) = ()
+// val restart : (unit -> unit) -> unit
+let restart (func:(unit->unit)) = (controlsMap.Item "restartButton").Click.Add (fun _ -> func())
 
 // Show GUI
 // val show : unit -> unit
@@ -218,7 +221,8 @@ let getGame() =
 // val ready : Game -> unit
 let ready (game:Game) = 
     disableAll()
-    enableButtons [(controlsMap.Item "startButton"); (controlsMap.Item "quitButton")] |> ignore
+    enableButtons [(controlsMap.Item "startButton"); (controlsMap.Item "restartButton")] |> ignore
+    clearRadios  (difficultyRadios @ playerRadios) |> ignore 
     enableRadios (difficultyRadios @ playerRadios) |> ignore  
     ()
 
@@ -231,7 +235,7 @@ let inProgressC (game:Game) =
 let inProgressP (game:Game) = 
     disableAll()
     (controlsMap.Item "gameButton").Text <- (sprintf "%A" game)
-    enableButtons [(controlsMap.Item "gameButton"); (controlsMap.Item "quitButton")] |> ignore
+    enableButtons [(controlsMap.Item "gameButton"); (controlsMap.Item "restartButton")] |> ignore
     ()
 
 // val moving : Game -> unit
@@ -240,16 +244,17 @@ let moving (game:Game) =
 
 // val finish : Player -> unit
 let finish (player:Player) = 
+    disableAll()
     let msg = 
         match player with
         | Player ->    "Player Won!"
         | PC     ->    "PC Won!"  
     //let popup = new Form(Text=msg, Size=Size(300,300))
     MessageBox.Show(msg) |> ignore
-
+    enableButtons [(controlsMap.Item "restartButton")] |> ignore
     //Application.Run(popup)
 
-
+(*To Add: Restart Button!*)
 
 
 

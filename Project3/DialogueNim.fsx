@@ -71,6 +71,8 @@ let rec init() =
     }
 and generatingRandom() =
     async {
+        (*Testing cancellation token as means of cancelling game (and returning to start state)*)
+        use ts = new CancellationTokenSource()
 
         GUI.generatingRandom()
 
@@ -78,28 +80,32 @@ and generatingRandom() =
             (async {return randomGame 23},
              (fun game -> ev.Post (GameReady game)),
              (fun _ -> ev.Post(Error)),
-             (fun _ -> ev.Post(Cancel)))
+             (fun _ -> ev.Post(Cancel)),
+             ts.Token)
         
         let! msg = ev.Receive()
         match msg with
-        | Cancel -> return! init()
+        | Cancel -> ts.Cancel()
+                    return! init()
         | GameReady game -> return! ready(game)
         | _ -> failwith (sprintf "generatingRandom() failed, no match for: %A" msg)
     }
 and getGame(url) =
     async {
-
+        use ts = new CancellationTokenSource()
         GUI.getGame()
 
         Async.StartWithContinuations
             (async {return getOnlineGame url},
              (fun game -> ev.Post (GameReady game)),
              (fun _ -> ev.Post(Error)),
-             (fun _ -> ev.Post(Cancel)))
+             (fun _ -> ev.Post(Cancel)),
+             ts.Token)
 
         let! msg = ev.Receive()
         match msg with
-        | Cancel -> return! init()
+        | Cancel -> ts.Cancel()
+                    return! init()
         | GameReady game -> return! ready(game)
         | _ -> failwith (sprintf "getGame() failed, no match for: %A" msg)
     }
@@ -139,6 +145,7 @@ and inProgressP (game) =
         let! msg = ev.Receive()
         match msg with
         | Move (n,i) -> return! moving n i Player game
+        | Restart -> return! init()
         | _ -> failwith (sprintf "inProgressP() failed, no match for: %A" msg)
     }
 and moving n i player game =
