@@ -27,15 +27,56 @@ type popup =
 
 
 // Match functions (generate matches, pick/remove/update matches)
-let createMatches = ()
+let mutable matchPanel = new FlowLayoutPanel(Name="matchPanel",Text = "Match Piles",AutoSize=true, Location = Point(100,550), FlowDirection = FlowDirection.LeftToRight)
+let mutable matchList = []
 
-let updateMatches = ()
+let createMatches (game:Game) = 
+    if not (List.isEmpty game) then
+        for column in game do
+            let l = []
+            for matchNum in 1 .. column do
+                ([new CheckBox(Name = (sprintf "%A,%A" matchNum column), Appearance = Appearance.Button,MinimumSize=Size(50,20),MaximumSize=Size(50,20),Text="")]::l) |> ignore
 
-(*let createDifficultyRadios = 
-    let rb1 = new RadioButton(Name="Novice",Location=Point(100,800),MinimumSize=Size(10,10),MaximumSize=Size(10,10),Text="Novice")
-    let rb2 = new RadioButton(Name="Intermediate",Location=Point(100,800),MinimumSize=Size(10,10),MaximumSize=Size(10,10),Text="Intermediate")
-    let rb3 = new RadioButton(Name="Expert",Location=Point(100,800),MinimumSize=Size(10,10),MaximumSize=Size(10,10),Text="Expert")
-    [rb1; rb2; rb3]*)
+            l::matchList |> ignore
+        
+        for col in matchList do
+            let flp = new FlowLayoutPanel(Name=sprintf "%A" (List.length col),AutoSize=true, FlowDirection = FlowDirection.TopDown)
+            for mAtch in col do 
+                flp.Controls.Add mAtch
+            matchPanel.Controls.Add flp    
+        ()
+    else
+        matchPanel <- new FlowLayoutPanel(Name="matchPanel",Text = "Match Piles",AutoSize=true, FlowDirection = FlowDirection.LeftToRight)
+        ()
+
+let destroyMatches() =
+    matchList <- List.empty
+    createMatches []
+
+  
+let enableMatches() =
+    for col in matchList do
+        for (mAtch:CheckBox) in col do
+            mAtch.Enabled <- true
+
+let disableMatches() =
+    for col in matchList do
+        for (mAtch:CheckBox) in col do
+            mAtch.Enabled <- false
+
+let updateMatches (game:Game) = 
+    createMatches game
+
+let selectMatches() =
+    let mutable numMatches = 0
+    let mutable colNumber = 0
+
+    for col in matchList do
+        for (mAtch:CheckBox) in col do
+            if (mAtch.Checked) then 
+                colNumber <- (List.findIndex (fun i -> i = col) matchList)
+                numMatches <- (numMatches + 1)
+    (numMatches, colNumber)
 
 let createDifficultyRadios = 
     let rb1 = new RadioButton(Name="Novice",MinimumSize=Size(10,10),MaximumSize=Size(100,30),Text="Novice")
@@ -43,23 +84,10 @@ let createDifficultyRadios =
     let rb3 = new RadioButton(Name="Expert",MinimumSize=Size(10,10),MaximumSize=Size(100,30),Text="Expert")
     [rb1; rb2; rb3]
 
-(*let createPlayerRadios = 
-    let playerFirst = new RadioButton(Name="player" ,Location=Point(500,800),MinimumSize=Size(10,10),MaximumSize=Size(10,10),Text="Go First")
-    let aiFirst = new RadioButton(Name="ai", Location=Point(500,800),MinimumSize=Size(10,10),MaximumSize=Size(10,10),Text="Let AI Go First")
-    [playerFirst; aiFirst]*)
-
 let createPlayerRadios = 
     let playerFirst = new RadioButton(Name="player",MinimumSize=Size(10,10),MaximumSize=Size(100,30),Text="Go First")
     let aiFirst = new RadioButton(Name="ai",MinimumSize=Size(10,10),MaximumSize=Size(100,30),Text="AI goes First")
     [playerFirst; aiFirst]
-
-(*let createButtons = 
-    let gameButton = new Button(Name="gameButton",Location=Point(100,300),MinimumSize=Size(100,50),MaximumSize=Size(100,50),Text="Game button")
-    let randomButton = new Button(Name="randomButton",Location=Point(200,300),MinimumSize=Size(100,50),MaximumSize=Size(100,50),Text="Randomized")
-    let seedButton = new Button(Name="seedButton",Location=Point(300,300),MinimumSize=Size(100,50),MaximumSize=Size(100,50),Text="Webpage-Seeded")
-    let startButton = new Button(Name="startButton",Location=Point(400,300),MinimumSize=Size(100,50),MaximumSize=Size(100,50),Text="Start Game!")
-    let quitButton = new Button(Name="quitButton", Location=Point(500,300),MinimumSize=Size(100,50),MaximumSize=Size(100,50),Text="Quit Game ;(")
-    [gameButton; randomButton; seedButton; startButton; quitButton]*)
 
 let createButtons = 
     let gameButton = new Button(Name="gameButton",MinimumSize=Size(100,50),MaximumSize=Size(100,50),Text="Game button")
@@ -79,7 +107,7 @@ let createWindow str x y =
 let buttonList = createButtons
 
 let addButtons (window:Form) (buttons: Button list) = 
-    let flp = new FlowLayoutPanel(Name="buttonPanel", AutoSize=true, Location=Point(100,100), FlowDirection = FlowDirection.LeftToRight)
+    let flp = new FlowLayoutPanel(Name="buttonPanel", AutoSize=true, Location=Point(100,560), FlowDirection = FlowDirection.LeftToRight)
     for i in buttons do
         flp.Controls.Add i
     flp 
@@ -130,7 +158,7 @@ let initialize() =
     for i in playerRadios do
         playerPanel.Controls.Add i
     
-    let radioPanel = new FlowLayoutPanel(Name="radioPanel",AutoSize=true, Location=Point(100,200),FlowDirection = FlowDirection.LeftToRight)
+    let radioPanel = new FlowLayoutPanel(Name="radioPanel",AutoSize=true, Location=Point(100,650),FlowDirection = FlowDirection.LeftToRight)
     radioPanel.Controls.Add difficultyPanel
     radioPanel.Controls.Add playerPanel
    
@@ -149,7 +177,10 @@ let startGame (func: (Player -> Difficulty -> unit)) =
     ()
 
 // Need to implement more comprehensive choosing function here
-let chooseMove (func: (int * int -> unit)) = (controlsMap.Item "gameButton").Click.Add (fun _ -> func(1,0))
+let chooseMove (func: (int * int -> unit)) = 
+    // get number of matches selected and matchPile number 
+    let n,i = selectMatches()
+    (controlsMap.Item "gameButton").Click.Add (fun _ -> func(n,i))
 
 
 let rec clearRadios (rList:RadioButton list) =
@@ -221,6 +252,11 @@ let getGame() =
 // val ready : Game -> unit
 let ready (game:Game) = 
     disableAll()
+    createMatches(game)
+    window.Controls.Add matchPanel
+    window.Refresh()
+    //Application.Run(window)
+    disableMatches()
     enableButtons [(controlsMap.Item "startButton"); (controlsMap.Item "restartButton")] |> ignore
     clearRadios  (difficultyRadios @ playerRadios) |> ignore 
     enableRadios (difficultyRadios @ playerRadios) |> ignore  
@@ -228,12 +264,15 @@ let ready (game:Game) =
 
 // val inProgressC : Game -> unit
 let inProgressC (game:Game) = 
+    disableMatches()
     disableAll()
+    updateMatches(game)
     (controlsMap.Item "gameButton").Text <- (sprintf "%A" game)
     
 // val inProgressP : Game -> unit
 let inProgressP (game:Game) = 
     disableAll()
+    enableMatches()
     (controlsMap.Item "gameButton").Text <- (sprintf "%A" game)
     enableButtons [(controlsMap.Item "gameButton"); (controlsMap.Item "restartButton")] |> ignore
     ()
@@ -241,10 +280,15 @@ let inProgressP (game:Game) =
 // val moving : Game -> unit
 let moving (game:Game) = 
     disableAll()
+    updateMatches(game)
+    window.Refresh()
+    // matchPanel.Refresh()
+    disableMatches()
 
 // val finish : Player -> unit
 let finish (player:Player) = 
     disableAll()
+    disableMatches()
     let msg = 
         match player with
         | Player ->    "Player Won!"
