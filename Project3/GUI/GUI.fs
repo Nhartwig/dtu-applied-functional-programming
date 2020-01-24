@@ -179,8 +179,8 @@ let startGame (func: (Player -> Difficulty -> unit)) =
 // Need to implement more comprehensive choosing function here
 let chooseMove (func: (int * int -> unit)) = 
     // get number of matches selected and matchPile number 
-    let n,i = selectMatches()
-    (controlsMap.Item "gameButton").Click.Add (fun _ -> func(n,i))
+    // let n,i = selectMatches()
+    (controlsMap.Item "gameButton").Click.Add (fun _ -> func(1,0))
 
 
 let rec clearRadios (rList:RadioButton list) =
